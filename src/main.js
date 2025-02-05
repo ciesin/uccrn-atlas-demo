@@ -15,6 +15,7 @@ import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import Feature from "@arcgis/core/widgets/Feature";
 import MultidimensionalSubset from "@arcgis/core/layers/support/MultidimensionalSubset";
 import Search from "@arcgis/core/widgets/Search";
+import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer.js";
 
 import "@esri/calcite-components/dist/calcite/calcite.css";
 import "./style.css";
@@ -96,6 +97,20 @@ const lecz_v3 = new ImageryLayer({
   visible: false
 });
 
+const ssp245 = new ImageryTileLayer({
+  url: "https://tiledimageservices2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/changeintemp_10pct_2050s_ssp245_2050s_ssp245_subset_test2/ImageServer",
+  opacity:0.5,
+  title: "changeintemp_10pct_2050s_ssp245-2050s-ssp245_subset",
+  useViewTime: false,
+  popupEnabled: true,
+  popupTemplate: {
+    title: "ssp245",
+    content: "{Raster.ServicePixelValue}",
+    returnPixelValues: true
+  },
+  visible: false
+})
+
 // Create GeoJSON layers with correct relative paths
 const layerOptions = {
   selectionEnabled: false,
@@ -140,7 +155,7 @@ const mexLayer = new GeoJSONLayer({
 // Create map with basemap and layers
 const map = new Map({
   basemap: basemap,
-  layers: [yceouhi_v4, lecz_v3, nycLayer, laLayer, copLayer, mexLayer]
+  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer]
 });
 
 // Create view
