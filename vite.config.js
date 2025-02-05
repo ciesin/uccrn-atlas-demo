@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 const config = {
-  base: '/ipcc-apps-uccrn-atlas-demo/',  // Changed from '/uccrn-atlas-demo/'
+  base: '/uccrn-atlas-demo/',  // Changed from '/ipcc-apps-uccrn-atlas-demo/'
   build: {
     chunkSizeWarningLimit: 2000
   },
