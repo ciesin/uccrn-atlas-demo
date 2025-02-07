@@ -44,3 +44,13 @@ ArcGIS Auth token: `https://columbia.maps.arcgis.com/home/item.html?id=a20ff9428
 2. Los Angeles: transportation
 3. Copenhagen: cloudburst
 4. Mexico City: rainwater
+
+## Deployment
+
+### Production Deployment
+
+The production GitHub Page is deployed from the `master` branch. To deploy the production build, push your changes to the `master` branch. The GitHub Actions workflow will automatically build and deploy the application to the production GitHub Page.
+
+### Development Deployment
+
+The development GitHub Page is deployed from the `dev` branch. To deploy the development build, push your changes to the `dev` branch. The GitHub Actions workflow will automatically build and deploy the application to the development GitHub Page.
