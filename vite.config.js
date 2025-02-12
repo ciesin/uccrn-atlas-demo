@@ -20,6 +20,8 @@ const developmentConfig = {
   }
 };
 
+// Note: If you encounter a 404 error, please check the URL and ensure that the build completed successfully.
+
 export default defineConfig(({ mode }) => {
   if (mode === 'development') {
     return developmentConfig;

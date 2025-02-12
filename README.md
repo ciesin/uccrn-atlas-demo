@@ -53,4 +53,6 @@ The production GitHub Page is deployed from the `master` branch. To deploy the p
 
 ### Development Deployment
 
-The development GitHub Page is deployed from the `dev` branch. To deploy the development build, push your changes to the `dev` branch. The GitHub Actions workflow will automatically build and deploy the application to the development GitHub Page at `https://<username>.github.io/uccrn-atlas-demo-dev/`.
+The development GitHub Page is deployed from the `dev` branch. To deploy the development build, push your changes to the `dev` branch. The GitHub Actions workflow will automatically build and deploy the application to the development GitHub Page at `https://<username>.github.io/dev-uccrn-atlas-demo/`.
+
+Note: If you encounter a 404 error, please check the URL and ensure that the build completed successfully.
