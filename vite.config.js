@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
-const config = {
-  base: '/ipcc-apps-uccrn-atlas-demo/',  // Changed from '/uccrn-atlas-demo/'
+const productionConfig = {
+  base: '/uccrn-atlas-demo/',
   build: {
     chunkSizeWarningLimit: 2000
   },
@@ -10,4 +10,20 @@ const config = {
   }
 };
 
-export default defineConfig(config);
+const developmentConfig = {
+  base: '/dev-uccrn-atlas-demo/',
+  build: {
+    chunkSizeWarningLimit: 2000
+  },
+  server: {
+    open: true
+  }
+};
+
+export default defineConfig(({ mode }) => {
+  if (mode === 'development') {
+    return developmentConfig;
+  } else {
+    return productionConfig;
+  }
+});
