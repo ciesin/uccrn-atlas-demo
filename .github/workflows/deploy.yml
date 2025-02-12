@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref == 'refs/heads/master' && 'github-pages' || 'github-pages-dev' }}
-      url: ${{ github.ref == 'refs/heads/master' && 'https://<username>.github.io/uccrn-atlas-demo/' || 'https://<username>.github.io/uccrn-atlas-demo-dev/' }}
+      url: ${{ github.ref == 'refs/heads/master' && 'https://ciesin.github.io/uccrn-atlas-demo/' || 'https://ciesin.github.io/dev-uccrn-atlas-demo/' }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
