@@ -38,21 +38,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: ${{ github.ref == 'refs/heads/master' && 'github-pages' || 'github-pages-dev' }}
+      url: ${{ github.ref == 'refs/heads/master' && 'https://<username>.github.io/uccrn-atlas-demo/' || 'https://<username>.github.io/uccrn-atlas-demo-dev/' }}
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  deploy-dev:
-    if: github.ref == 'refs/heads/dev'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages-dev
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages (Dev)
         id: deployment
         uses: actions/deploy-pages@v4
