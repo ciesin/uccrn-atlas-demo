@@ -11,7 +11,7 @@ const productionConfig = {
 };
 
 const developmentConfig = {
-  base: '/uccrn-atlas-demo-dev/',
+  base: '/dev-uccrn-atlas-demo/',
   build: {
     chunkSizeWarningLimit: 2000
   },
