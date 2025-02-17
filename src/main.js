@@ -18,6 +18,8 @@ import MultidimensionalSubset from "@arcgis/core/layers/support/Multidimensional
 import Search from "@arcgis/core/widgets/Search";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer.js";
 import Layer from "@arcgis/core/layers/Layer";
+import Portal from "@arcgis/core/portal/Portal";
+import PortalGroup from "@arcgis/core/portal/PortalGroup";
 
 import "@esri/calcite-components/dist/calcite/calcite.css";
 import "./style.css";
@@ -80,7 +82,7 @@ const yceouhi_v4 = new ImageryLayer({
   popupTemplate: {
     title: "UHI Values",
     content: "{Raster.ServicePixelValue} Celcius",
-    returnPixelValues: true
+    returnPixelValues: false
   },
 });
 
@@ -163,7 +165,11 @@ const saLayer = new GeoJSONLayer({
 // Create map with basemap and layers
 const map = new Map({
   basemap: basemap,
-  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer]
+  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer],
+  // Add attribution
+  portalItem: {
+    attribution: "CIESIN, Columbia University"
+  }
 });
 
 // Add portal layer
@@ -172,13 +178,55 @@ Layer.fromPortalItem({
     id: "20da8d9af73043bd88a3566d5602b86e"
   }
 }).then((layer) => {
-  layer.visible = false; // Start with layer hidden
+  layer.visible = true; // Start with layer hidden
   map.add(layer);
 
   // Add layer to layer list
   layerList.operationalItems.add({
     layer: layer,
     title: "Global climate (Köppen–Geiger-climate-classification)"
+  });
+});
+
+// Setup portal and group query
+const portal = new Portal();
+portal.load().then(() => {
+  const portalGroup = new PortalGroup({
+    id: "96adc565a1054c1cb405efc9b89edb9b",
+    portal: portal
+  });
+
+  portalGroup.load().then(() => {
+    const queryParams = {
+      query: "type: Feature Layer",
+      sortField: "title",
+      sortOrder: "asc",
+      num: 100
+    };
+
+    const queryOptions = {
+      reference: {
+        portal: portal
+      }
+    };
+
+    portalGroup.queryItems(queryParams, queryOptions).then((results) => {
+      results.results.forEach(item => {
+        Layer.fromPortalItem({
+          portalItem: item
+        }).then(layer => {
+          layer.visible = false;
+          map.add(layer);
+          
+          layerList.operationalItems.add({
+            layer: layer,
+            title: item.title
+          });
+        }).catch(error => {
+          console.error("Error loading layer:", error);
+        });
+      });
+    });
   });
 });
 
@@ -196,9 +244,25 @@ const activeView = new MapView({
   }
 });
 
-// Create layer list widget
+// Create layer list widget with reordering enabled
 const layerList = new LayerList({
-  view: activeView
+  view: activeView,
+  dragEnabled: true, // Enable drag and drop
+  listItemCreatedFunction: (event) => {
+    const item = event.item;
+  }
+});
+
+// Handle layer reordering actions
+layerList.on("trigger-action", (event) => {
+  const layer = event.item.layer;
+  const index = map.layers.indexOf(layer);
+
+  if (event.action.id === "move-up" && index > 0) {
+    map.reorder(layer, index - 1);
+  } else if (event.action.id === "move-down" && index < map.layers.length - 1) {
+    map.reorder(layer, index + 1);
+  }
 });
 
 // Create expand widget for layer list

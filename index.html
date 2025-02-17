@@ -44,27 +44,26 @@
         Get Started
       </calcite-button>
     </calcite-dialog>
-    <calcite-button id="example-button">Open dialog</calcite-button>
     <script type="module" src="./src/main.js"></script>
     <script>
-      const button = document.getElementById("example-button");
       const dialog = document.getElementById("example-dialog");
       const saveButton = document.getElementById("save-button");
-
-      button?.addEventListener("click", function() {
-        dialog.open = true;
-      });
 
       saveButton?.addEventListener("click", function() {
         const selectedRole = document.querySelector('calcite-tile-select[checked]');
         if (selectedRole?.heading === "Mapping View") {
           dialog.open = false;
-          // Navigate to the map view
           document.getElementById("viewDiv").scrollIntoView({ behavior: "smooth" });
         } else if (selectedRole?.heading === "Database View") {
           window.open("https://environmentalsolutions.mit.edu/research/climate-change-and-cities-uccrn-collaboration/", "_blank");
         }
       });
     </script>
+    <calcite-notice open icon="information" closable style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+      <div slot="title">This App is in development!</div>
+      <div slot="message">Datasets, Services and other resoruces are being accessed for development purposes</div>
+      <calcite-action slot="actions-end" icon="launch" text="Citations" text-enabled onclick="window.open('https://docs.google.com/document/d/14GTO9evd7z1-xvTIbXxFOXWD8TAK_XeZzxVJzUYwDMU/edit?usp=sharing', '_blank')"></calcite-action>
+      </calcite-action>
+    </calcite-notice>
   </body>
 </html>
