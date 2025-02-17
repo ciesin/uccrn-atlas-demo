@@ -5,9 +5,66 @@
     <link rel="icon" href="data:;base64,=" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UCCRN Atlas Demo</title>
+    <script type="module" src="https://js.arcgis.com/calcite-components/3.0.2/calcite.esm.js"></script>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
     <div id="viewDiv"></div>
+    <calcite-dialog open modal heading="Welcome to UCCRN Atlas Demo" id="example-dialog">
+      <calcite-label>
+        Choose your user role
+        <calcite-tile-select-group>
+          <calcite-tile-select checked input-enabled input-alignment="end" icon="map"
+            heading="Mapping View"
+            description="This role allows users view case studies on a Map">
+          </calcite-tile-select>
+          <calcite-tile-select input-enabled input-alignment="end" icon="table"
+            heading="Database View"
+            description="This role allows users view case studies in a Table">
+          </calcite-tile-select>
+        </calcite-tile-select-group>
+      </calcite-label>
+      <calcite-notice open icon width="full">
+        <div slot="message">You can edit this choice later on, in Settings.</div>
+      </calcite-notice>
+      </calcite-button>
+      <calcite-button slot="footer-end" appearance="outline">
+        Cancel
+      </calcite-button>
+      <calcite-button slot="footer-end" id="save-button">
+        Get Started
+      </calcite-button>
+    </calcite-dialog>
+    <calcite-button id="example-button">Open dialog</calcite-button>
     <script type="module" src="./src/main.js"></script>
+    <script>
+      const button = document.getElementById("example-button");
+      const dialog = document.getElementById("example-dialog");
+      const saveButton = document.getElementById("save-button");
+
+      button?.addEventListener("click", function() {
+        dialog.open = true;
+      });
+
+      saveButton?.addEventListener("click", function() {
+        const selectedRole = document.querySelector('calcite-tile-select[checked]');
+        if (selectedRole?.heading === "Mapping View") {
+          dialog.open = false;
+          // Navigate to the map view
+          document.getElementById("viewDiv").scrollIntoView({ behavior: "smooth" });
+        } else if (selectedRole?.heading === "Database View") {
+          window.open("https://environmentalsolutions.mit.edu/research/climate-change-and-cities-uccrn-collaboration/", "_blank");
+        }
+      });
+    </script>
   </body>
 </html>

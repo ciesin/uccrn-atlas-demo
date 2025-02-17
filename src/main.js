@@ -3,6 +3,7 @@ import MapView from "@arcgis/core/views/MapView";
 import Map from "@arcgis/core/Map";
 import Basemap from "@arcgis/core/Basemap";
 import ImageryLayer from "@arcgis/core/layers/ImageryLayer";
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import LayerList from "@arcgis/core/widgets/LayerList";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
 import Zoom from "@arcgis/core/widgets/Zoom";
@@ -16,6 +17,7 @@ import Feature from "@arcgis/core/widgets/Feature";
 import MultidimensionalSubset from "@arcgis/core/layers/support/MultidimensionalSubset";
 import Search from "@arcgis/core/widgets/Search";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer.js";
+import Layer from "@arcgis/core/layers/Layer";
 
 import "@esri/calcite-components/dist/calcite/calcite.css";
 import "./style.css";
@@ -77,8 +79,8 @@ const yceouhi_v4 = new ImageryLayer({
   popupEnabled: true,
   popupTemplate: {
     title: "UHI Values",
-    content: "{Raster.ServicePixelValue} Celcius", // Simple display of pixel value
-    returnPixelValues: true  // Important: This ensures pixel values are returned
+    content: "{Raster.ServicePixelValue} Celcius",
+    returnPixelValues: true
   },
 });
 
@@ -109,7 +111,7 @@ const ssp245 = new ImageryTileLayer({
     returnPixelValues: true
   },
   visible: false
-})
+});
 
 // Create GeoJSON layers with correct relative paths
 const layerOptions = {
@@ -152,37 +154,47 @@ const mexLayer = new GeoJSONLayer({
   ...layerOptions
 });
 
+const saLayer = new GeoJSONLayer({
+  url: new URL("../cities/singapore.geojson", import.meta.url).href,
+  title: "Singapore",
+  ...layerOptions
+});
+
 // Create map with basemap and layers
 const map = new Map({
   basemap: basemap,
-  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer]
+  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer]
+});
+
+// Add portal layer
+Layer.fromPortalItem({
+  portalItem: {
+    id: "20da8d9af73043bd88a3566d5602b86e"
+  }
+}).then((layer) => {
+  layer.visible = false; // Start with layer hidden
+  map.add(layer);
+
+  // Add layer to layer list
+  layerList.operationalItems.add({
+    layer: layer,
+    title: "Global climate (Köppen–Geiger-climate-classification)"
+  });
 });
 
 // Create view
 const activeView = new MapView({
-  zoom: 9,
+  zoom: 2,
   center: [-74.006, 40.7128], // NYC coordinates
   container: "viewDiv",
   map: map,
-  popupEnabled: true, // Enable popups
+  popupEnabled: true,
   highlightOptions: {
     color: [0, 0, 0, 0],
     haloOpacity: 0,
     fillOpacity: 0
   }
 });
-
-// Function to transfer UI components
-function transferUIComponents() {
-  activeView.ui.add(logoDiv, "top-left");
-  activeView.ui.add(bgExpand, "top-right");
-  activeView.ui.add(searchExpand, "top-right");
-  activeView.ui.add(selectorExpand, "top-left");
-  activeView.ui.add(legendExpand, "bottom-right");
-  activeView.ui.add(layerListExpand, "top-left");
-  activeView.ui.add(timeSliderExpand, "bottom-left");
-  activeView.ui.move("zoom", "top-right");
-}
 
 // Create layer list widget
 const layerList = new LayerList({
@@ -225,7 +237,7 @@ const pdfIframe = document.createElement("iframe");
 pdfIframe.style.width = "100%";
 pdfIframe.style.height = "calc(100vh - 100px)";
 pdfIframe.style.border = "none";
-pdfIframe.style.display = "block"; // Ensure the iframe is displayed as a block element
+pdfIframe.style.display = "block";
 
 // Add iframe to feature widget container
 featureWidgetContainer.appendChild(pdfIframe);
@@ -273,7 +285,6 @@ const legendExpand = new Expand({
 
 // Initialize time slider when view and layer are ready
 activeView.when(() => {
-  // Initialize time slider
   yceouhi_v4.when(() => {
     timeSlider.fullTimeExtent = yceouhi_v4.timeInfo.fullTimeExtent;
     timeSlider.stops = {
@@ -298,30 +309,13 @@ const logoDiv = document.createElement("div");
 logoDiv.className = "logo-container";
 logoDiv.textContent = "UCCRN Atlas Demo";
 
-// Create intro modal
-const modal = document.createElement('div');
-modal.innerHTML = `
-  <div class="modal">
-    <div class="modal-content">
-      <h2>Welcome to UCCRN Atlas Demo</h2>
-      <button id="closeModal">Get Started</button>
-    </div>
-  </div>
-`;
-
-document.body.appendChild(modal);
-
-document.getElementById('closeModal').onclick = () => {
-  modal.style.display = 'none';
-};
-
-// Add the widgets to the view
-activeView.ui.add(logoDiv, "top-left");
-activeView.ui.move("zoom", "top-right");  // Move zoom widget
-activeView.ui.add(bgExpand, "top-right"); // Add basemap gallery
-activeView.ui.add(layerListExpand, "top-left"); // Move layer list below logo
-activeView.ui.add(timeSliderExpand, "bottom-left"); // Time slider stays in bottom-left
-activeView.ui.add(legendExpand, "bottom-right"); // Add legend widget
+// Add settings icon to the top right side
+const settingsButton = document.createElement("div");
+settingsButton.className = "esri-widget esri-widget--button esri-icon esri-icon-settings";
+settingsButton.icon = "gear";
+settingsButton.addEventListener("click", () => {
+  dialog.open = true;
+});
 
 function updateTimeSliderVisibility() {
   const hasVisibleTimeLayer = activeView.map.layers.some(layer => 
@@ -378,20 +372,12 @@ function handleLayerViewClick(event, layer, city) {
   activeView.hitTest(event).then((response) => {
     const results = response.results;
     
-    // Check if clicked on correct layer
     if (results.length > 0 && results[0].graphic.layer === layer) {
       const graphic = results[0].graphic;
       
-      // Update feature widget content
       featureWidget.graphic = graphic;
-      
-      // Update PDF content
       updatePdfIframe(city);
-      
-      // Close any other open widgets
       closeCurrentWidget();
-      
-      // Open feature expand widget
       featureExpand.expanded = true;
       currentOpenWidget = featureExpand;
     }
@@ -414,7 +400,6 @@ activeView.whenLayerView(copLayer).then((layerView) => {
 activeView.whenLayerView(mexLayer).then((layerView) => {
   activeView.on("click", (event) => handleLayerViewClick(event, mexLayer, "Mexico City"));
 });
-
 
 // Add click handler to close feature widget when clicking outside
 activeView.on("click", (event) => {
@@ -449,27 +434,14 @@ selectLabel.className = "esri-feature-form__label renderer-label";
 selectLabel.textContent = "Select a variable:";
 rendererDiv.appendChild(selectLabel);
 
-// Create expand widget
-const selectorExpand = new Expand({
-  view: activeView,
-  content: rendererDiv,
-  expanded: false,
-  expandIcon: "filter"
-});
-
-// Add to view UI
-activeView.ui.add(selectorExpand, "top-left");
-
 // Get multidimensional variables when layer loads
 yceouhi_v4.when(() => {
   const variables = yceouhi_v4.rasterInfo.multidimensionalInfo.variables;
   
-  // Create select element with variables
   const variableSelect = document.createElement("select");
   variableSelect.id = "variableName";
   variableSelect.className = "esri-input esri-select renderer-select";
 
-  // Add options from layer variables
   variables.forEach(variable => {
     const option = document.createElement("option");
     option.value = variable.name;
@@ -477,12 +449,10 @@ yceouhi_v4.when(() => {
     variableSelect.appendChild(option);
   });
 
-  // Handle variable changes
   variableSelect.addEventListener("change", () => {
     const selectedVar = variableSelect.value;
     const timeValues = variableDefinitions.find(v => v.name === selectedVar)?.values || [];
     
-    // Update multidimensional definition to include both time and Z dimension
     const newDefinitions = [
       {
         variableName: selectedVar,
@@ -502,14 +472,13 @@ yceouhi_v4.when(() => {
     yceouhi_v4.refresh();
   });
 
-  // Add to renderer div
   rendererDiv.appendChild(variableSelect);
 });
 
 // Create search widget with GeoJSON sources
 const searchWidget = new Search({
   view: activeView,
-  includeDefaultSources: false, // Enable ArcGIS World Geocoding Service
+  includeDefaultSources: false,
   sources: [
     {
       layer: nycLayer,
@@ -546,9 +515,18 @@ const searchWidget = new Search({
       outFields: ["*"],
       name: "Mexico City",
       placeholder: "Search Mexico City"
+    },
+    {
+      layer: saLayer,
+      searchFields: ["name", "uccrn"],
+      displayField: "name",
+      exactMatch: false,
+      outFields: ["*"],
+      name: "Singapore",
+      placeholder: "Search Singapore"
     }
   ],
-  popupEnabled: false, // Disable popups
+  popupEnabled: false,
   popupTemplate: {
     title: "{name}"
   }
@@ -559,12 +537,31 @@ const searchExpand = new Expand({
   view: activeView,
   content: searchWidget,
   expanded: false,
-  expandIconClass: "esri-icon-search",
-  group: "top-right"
+  expandIconClass: "esri-icon-search"
+});
+
+// Create expand widget
+const selectorExpand = new Expand({
+  view: activeView,
+  content: rendererDiv,
+  expanded: false,
+  expandIcon: "filter"
 });
 
 // Add to view UI
 activeView.ui.add(searchExpand, "top-right");
+// Add the widgets to the view
+activeView.ui.add(logoDiv, "top-left");
+activeView.ui.add(featureExpand, "top-right");
+activeView.ui.move("zoom", "top-right");
+activeView.ui.add(bgExpand, "top-right");
+activeView.ui.add(layerListExpand, "top-left");
+activeView.ui.add(timeSliderExpand, "bottom-left");
+activeView.ui.add(legendExpand, "bottom-right");
+activeView.ui.add(settingsButton, "top-right");
+
+// Add to view UI
+activeView.ui.add(selectorExpand, "top-left");
 
 // Add function to check multidimensional layer visibility
 function updateMultidimensionalFilterVisibility() {
@@ -572,16 +569,14 @@ function updateMultidimensionalFilterVisibility() {
     layer.visible && layer === yceouhi_v4
   );
   
-  // Toggle expand widget visibility
   selectorExpand.visible = hasVisibleMultidimensionalLayer;
   selectorExpand.container.classList.toggle('filter-hidden', !hasVisibleMultidimensionalLayer);
 }
 
-// Watch for layer visibility changes
-activeView.map.layers.forEach(layer => {  layer.watch("visible", updateMultidimensionalFilterVisibility);
+activeView.map.layers.forEach(layer => {
+  layer.watch("visible", updateMultidimensionalFilterVisibility);
 });
 
-// Initial visibility check
 updateMultidimensionalFilterVisibility();
 
 // Add popup content function
@@ -604,7 +599,6 @@ activeView.on("click", (event) => {
   const point = activeView.toMap(event);
   if (!point) return;
 
-  // Use identify with specific options
   const identifyParams = {
     geometry: point,
     returnPixelValues: true,

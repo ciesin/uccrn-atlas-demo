@@ -1,0 +1,20 @@
+/* Keep positioning classes */
+.ui-container > .top-right {
+  top: 15px;
+  right: 15px;
+}
+
+.ui-container > .top-left {
+  top: 15px;
+  left: 15px;
+}
+
+.ui-container > .bottom-right {
+  bottom: 15px;
+  right: 15px;
+}
+
+.ui-container > .bottom-left {
+  bottom: 15px;
+  left: 15px;
+}
