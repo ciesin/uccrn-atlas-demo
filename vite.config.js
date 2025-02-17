@@ -10,20 +10,6 @@ const productionConfig = {
   }
 };
 
-const developmentConfig = {
-  base: '/dev-uccrn-atlas-demo/',
-  build: {
-    chunkSizeWarningLimit: 2000
-  },
-  server: {
-    open: true
-  }
-};
-
-export default defineConfig(({ mode }) => {
-  if (mode === 'development') {
-    return developmentConfig;
-  } else {
-    return productionConfig;
-  }
+export default defineConfig(() => {
+  return productionConfig;
 });
