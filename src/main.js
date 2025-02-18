@@ -178,7 +178,7 @@ Layer.fromPortalItem({
     id: "20da8d9af73043bd88a3566d5602b86e"
   }
 }).then((layer) => {
-  layer.visible = true; // Start with layer hidden
+  layer.visible = false; // Start with layer hidden
   map.add(layer);
 
   // Add layer to layer list
@@ -232,8 +232,8 @@ portal.load().then(() => {
 
 // Create view
 const activeView = new MapView({
-  zoom: 2,
-  center: [-74.006, 40.7128], // NYC coordinates
+  zoom: 6,
+  center: [2.35, 48.85], // Paris coordinates
   container: "viewDiv",
   map: map,
   popupEnabled: true,
