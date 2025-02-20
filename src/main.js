@@ -175,7 +175,7 @@ const map = new Map({
 // Add portal layer
 Layer.fromPortalItem({
   portalItem: {
-    id: "20da8d9af73043bd88a3566d5602b86e"
+    id: "20da8d9af73043bd88a3566d5602b86e" 
   }
 }).then((layer) => {
   layer.visible = false; // Start with layer hidden
@@ -185,6 +185,22 @@ Layer.fromPortalItem({
   layerList.operationalItems.add({
     layer: layer,
     title: "Global climate (Köppen–Geiger-climate-classification)"
+  });
+});
+
+// Add portal layer
+Layer.fromPortalItem({
+  portalItem: {
+    id: "6690a75950004b79927f585ee79c9a7e" 
+  }
+}).then((layer) => {
+  layer.visible = false; // Start with layer hidden
+  map.add(layer);
+
+  // Add layer to layer list
+  layerList.operationalItems.add({
+    layer: layer,
+    title: "Global Anthropogenic Biomes"
   });
 });
 
