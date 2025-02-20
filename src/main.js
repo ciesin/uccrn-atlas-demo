@@ -248,7 +248,7 @@ portal.load().then(() => {
 
 // Create view
 const activeView = new MapView({
-  zoom: 6,
+  zoom: 2,
   center: [2.35, 48.85], // Paris coordinates
   container: "viewDiv",
   map: map,
