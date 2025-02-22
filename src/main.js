@@ -162,10 +162,22 @@ const saLayer = new GeoJSONLayer({
   ...layerOptions
 });
 
+const DurbanLayer = new GeoJSONLayer({
+  url: new URL("../cities/Durban.geojson", import.meta.url).href,
+  title: "Durban",
+  ...layerOptions
+});
+
+const rioLayer = new GeoJSONLayer({
+  url: new URL("../cities/Rio-de-Janeiro-city.geojson", import.meta.url).href,
+  title: "Rio de Janeiro",
+  ...layerOptions
+});
+
 // Create map with basemap and layers
 const map = new Map({
   basemap: basemap,
-  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer],
+  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer, DurbanLayer, rioLayer],
   // Add attribution
   portalItem: {
     attribution: "CIESIN, Columbia University"
@@ -434,6 +446,12 @@ function updatePdfIframe(city) {
       pdfPath = `${pdfBasePath}cop-test.pdf#zoom=35`;
     } else if (city === "Mexico City") {
       pdfPath = `${pdfBasePath}mex-test.pdf#zoom=35`;
+    } else if (city === "Singapore") {
+      pdfPath = `${pdfBasePath}sa-test.pdf#zoom=35`;  
+    } else if (city === "Durban") {
+      pdfPath = `${pdfBasePath}Durb-test.pdf#zoom=35`;
+    } else if (city === "Rio") {
+    pdfPath = `${pdfBasePath}rio-test.pdf#zoom=35`;
     }
     
     if (pdfPath) {
@@ -479,6 +497,18 @@ activeView.whenLayerView(copLayer).then((layerView) => {
 
 activeView.whenLayerView(mexLayer).then((layerView) => {
   activeView.on("click", (event) => handleLayerViewClick(event, mexLayer, "Mexico City"));
+});
+
+activeView.whenLayerView(saLayer).then((layerView) => {
+  activeView.on("click", (event) => handleLayerViewClick(event, saLayer, "Singapore"));
+});
+
+activeView.whenLayerView(DurbanLayer).then((layerView) => {
+  activeView.on("click", (event) => handleLayerViewClick(event, DurbanLayer, "Durban"));
+});
+
+activeView.whenLayerView(rioLayer).then((layerView) => {
+  activeView.on("click", (event) => handleLayerViewClick(event, rioLayer, "Rio de Janeiro"));
 });
 
 // Add click handler to close feature widget when clicking outside
@@ -604,6 +634,24 @@ const searchWidget = new Search({
       outFields: ["*"],
       name: "Singapore",
       placeholder: "Search Singapore"
+    },
+    {
+      layer: DurbanLayer,
+      searchFields: ["name", "uccrn"],
+      displayField: "name",
+      exactMatch: false,
+      outFields: ["*"],
+      name: "Durban",
+      placeholder: "Search Durban"
+    },
+    {
+      layer: rioLayer,
+      searchFields: ["name", "uccrn"],
+      displayField: "name",
+      exactMatch: false,
+      outFields: ["*"],
+      name: "Rio de Janeiro",
+      placeholder: "Search Rio de Janeiro"
     }
   ],
   popupEnabled: false,
