@@ -77,10 +77,38 @@ body, html, #viewDiv {
   background: #005a8c;
 }
 
-.feature-widget-container {
-  width: 100%;
-  height: 100%;
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/* Override positioning in style.css */
+.ui-container > .top-right.feature-widget-container-expanded {
+  top: 0px !important;
+  right: 0px !important;
+  width: 25vw !important;  /* Adjusted width for the feature widget */
+  height: 101vh !important;
+  z-index: 1000;  /* Ensure it is visually on top */
 }
+
+.feature-widget-container-expanded {
+  width: 25vw; /* Full width on smaller screens */
+  height: 101vh;
+}
+
+/* Adjustments for wider screens */
+@media (min-width: 768px) {
+  .feature-widget-container-expanded {
+    width: 25vw; /* Less width on wider screens */
+  }
+}
+/* Override positioning in style.css */
+.ui-container > .top-right.feature-widget-container-expanded {
+  top: 0px !important;
+  right: 0px !important;
+  width: 25vw !important;  /* Adjusted width for the feature widget */
+  height: 101vh !important;
+  z-index: 1000;  /* Ensure it is visually on top */
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
 
 .pdf-iframe {
   width: 100%;
