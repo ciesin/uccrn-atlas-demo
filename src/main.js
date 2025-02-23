@@ -331,10 +331,14 @@ const timeSliderExpand = new Expand({
   expanded: false
 });
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Create feature widget and expand widget
 const featureWidgetContainer = document.createElement("div");
-featureWidgetContainer.style.width = "100%";
-featureWidgetContainer.style.height = "100%";
+featureWidgetContainer.className = "feature-widget-container"; // Base styles
+
+// Ensure the container is ready with expanded styles if starting expanded
+featureWidgetContainer.classList.add("feature-widget-container-expanded"); // Start expanded
 
 const featureWidget = new Feature({
   container: featureWidgetContainer,
@@ -342,26 +346,42 @@ const featureWidget = new Feature({
   spatialReference: activeView.spatialReference
 });
 
-// Create iframe for PDF
+// Add iframe to feature widget container
 const pdfIframe = document.createElement("iframe");
 pdfIframe.style.width = "100%";
-pdfIframe.style.height = "calc(100vh - 100px)";
+pdfIframe.style.height = "calc(101vh - 100px)";
 pdfIframe.style.border = "none";
 pdfIframe.style.display = "block";
-
-// Add iframe to feature widget container
 featureWidgetContainer.appendChild(pdfIframe);
 
 const featureExpand = new Expand({
   view: activeView,
   content: featureWidgetContainer,
-  expanded: false,
+  expanded: true, // Ensure the widget starts as expanded
   expandIconClass: "esri-icon-layer-list",
   expandTooltip: "Feature Details"
 });
 
+// Dynamically add or remove the expanded class based on the widget's state
+featureExpand.watch("expanded", (expanded) => {
+  console.log('Expanded state changed to:', expanded);  // Debugging output
+  if (expanded) {
+    featureWidgetContainer.classList.add("feature-widget-container-expanded");
+  } else {
+    featureWidgetContainer.classList.remove("feature-widget-container-expanded");
+  }
+});
+
 // Add expand widget to the view
 activeView.ui.add(featureExpand, "top-right");
+
+// Debugging output to check initialization
+console.log("Feature widget added:", featureExpand);
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 // Create widgets
 const zoom = new Zoom({
