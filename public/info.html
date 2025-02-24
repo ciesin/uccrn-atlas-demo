@@ -19,20 +19,20 @@
 </head>
 <body>
     <h1>Welcome to UCCRN City Solutions Case Study Atlas</h1>
-    <p>Please note that this is a demo of the prototype in development, with limited functionality and a few selected cities: Copenhagen, Los Angeles, Mexico City, New York City, and Singapore. 
-        Not all content or presentation, data layers, or relevant information have been peer-reviewed.</p>
+    <p>Please note that this is a demo of the prototype in development, with limited functionality and a few selected cities: Copenhagen, Los Angeles, Mexico City, New York City, and Singapore. </p>
   
     <ul>
         <li>Filter function (under construction)</li><br>
             
     <!-- City Filter Dropdown -->
     <div id="cityFilterContainer">
-        <label for="citySelect">Select a City:</label> <br>
+        <label for="citySelect">City Name:</label> <br>
         <select id="citySelect" class="esri-input esri-select">
             <option value="" selected disabled>Choose a city...</option>
         </select>
     </div>
     <br>
+        
         
     <!-- Mega Cities Checkbox -->
     City Popolation: 
@@ -60,6 +60,16 @@
     </div>
         
     <br>
+
+    <!-- Case Study Provenance -->
+    <div id="provenanceContainer">
+        <label for="provenanceSelect">Case Study Provenance:</label>
+        <select id="provenanceSelect" class="esri-input esri-select">
+            <option value="" selected disabled>Provenance...</option>
+        </select>
+    </div> <!-- Closing comment added for clarity -->
+    
+    <br>
         
     <!-- Case Study Dropdown -->
     <div id="caseStudyContainer">
@@ -70,6 +80,7 @@
     </div> <!-- Closing comment added for clarity -->
         
     <br>
+
         
     <!-- Solutions Checkbox -->
     Solutions:
