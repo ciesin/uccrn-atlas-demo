@@ -1,0 +1,4 @@
+{
+  "type" : "FeatureCollection",
+  "features" : [{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[-73.935239999999965,40.73061000000007]},"properties":{"OBJECTID":1,"City":"New York City","Longitude__X_":-73.935239999999993,"Latitude__Y_":40.730609999999999}},{"type":"Feature","id":2,"geometry":{"type":"Point","coordinates":[-118.24259999999998,34.054900000000032]},"properties":{"OBJECTID":2,"City":"Los Angeles","Longitude__X_":-118.2426,"Latitude__Y_":34.054900000000004}},{"type":"Feature","id":3,"geometry":{"type":"Point","coordinates":[-99.133199999999988,19.432600000000036]},"properties":{"OBJECTID":3,"City":"Mexico City","Longitude__X_":-99.133200000000002,"Latitude__Y_":19.432600000000001}}]
+}
