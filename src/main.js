@@ -347,12 +347,22 @@ const featureWidget = new Feature({
 });
 
 // Add iframe to feature widget container
-const pdfIframe = document.createElement("iframe");
-pdfIframe.style.width = "100%";
-pdfIframe.style.height = "calc(101vh - 100px)";
-pdfIframe.style.border = "none";
-pdfIframe.style.display = "block";
-featureWidgetContainer.appendChild(pdfIframe);
+// const pdfIframe = document.createElement("iframe");
+// pdfIframe.style.width = "100%";
+// pdfIframe.style.height = "calc(101vh - 100px)";
+// pdfIframe.style.border = "none";
+// pdfIframe.style.display = "block";
+// featureWidgetContainer.appendChild(pdfIframe);
+
+
+// Add an iframe to the feature widget container for HTML content
+const htmlIframe = document.createElement("iframe");
+htmlIframe.style.width = "100%";
+htmlIframe.style.height = "calc(100vh - 100px)";
+htmlIframe.style.border = "none";
+console.log("Attempting to load:", "./info.html");
+htmlIframe.src = "./info.html";
+featureWidgetContainer.appendChild(htmlIframe);
 
 const featureExpand = new Expand({
   view: activeView,
@@ -361,6 +371,7 @@ const featureExpand = new Expand({
   expandIconClass: "esri-icon-layer-list",
   expandTooltip: "Feature Details"
 });
+
 
 // Dynamically add or remove the expanded class based on the widget's state
 featureExpand.watch("expanded", (expanded) => {
