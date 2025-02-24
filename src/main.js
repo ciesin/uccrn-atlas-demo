@@ -184,6 +184,51 @@ const map = new Map({
   }
 });
 
+//////////////////////////////////////////////////////////////////checked boxes 
+// Load Mega City Layer with Custom Symbol
+const megaCityLayer = new GeoJSONLayer({
+    url: new URL("../cities/Mega_City.geojson", import.meta.url).href,
+    title: "Mega Cities",
+    visible: true, 
+    renderer: {
+        type: "simple",
+        symbol: {
+            type: "simple-marker",
+            style: "circle",
+            color: [255, 0, 0, 1], 
+            size: 8, // 
+            outline: {
+                color: [0, 0, 0, 0], 
+                width: 0
+            }
+        }
+    }
+});
+
+// Load Large City Layer with Custom Symbol
+const largeCityLayer = new GeoJSONLayer({
+    url: new URL("../cities/Large_City.geojson", import.meta.url).href,
+    title: "Large Cities",
+    visible: true, 
+    renderer: {
+        type: "simple",
+        symbol: {
+            type: "simple-marker",
+            style: "circle", 
+            color: [255, 255, 0, 1], 
+            size: 6, // 
+            outline: {
+                color: [0, 0, 0, 0], 
+                width: 0
+            }
+        }
+    }
+});
+
+// Add layers to the map, but DO NOT add to the layer list UI
+map.addMany([megaCityLayer, largeCityLayer]);
+///////////////////////////////////////////////////////////////checked boxes end 
+
 // Add portal layer
 Layer.fromPortalItem({
   portalItem: {
@@ -370,12 +415,17 @@ htmlIframe.onload = function () {
     const iframeDoc = htmlIframe.contentDocument || htmlIframe.contentWindow.document;
     const citySelect = iframeDoc.getElementById("citySelect");
     const megaCitiesCheck = iframeDoc.getElementById("megaCitiesCheck");
-    const caseStudySelect = iframeDoc.getElementById("caseStudySelect"); //
+    const largeCitiesCheck = iframeDoc.getElementById("largeCitiesCheck");
+    const caseStudySelect = iframeDoc.getElementById("caseStudySelect");
 
-    if (!citySelect || !megaCitiesCheck || !caseStudySelect) {
+    if (!citySelect || !megaCitiesCheck || !largeCitiesCheck || !caseStudySelect) {
         console.error("Dropdowns not found in info.html");
         return;
     }
+
+    // Ensure checkboxes are checked by default
+    megaCitiesCheck.checked = true;
+    largeCitiesCheck.checked = true;
 
     // Define city layers and their coordinates
     const cities = [
@@ -388,10 +438,11 @@ htmlIframe.onload = function () {
         { name: "Singapore", layer: saLayer, center: [103.8198, 1.3521], zoom: 11 }
     ];
 
-    // Define Mega Cities
-    const megaCities = [nycLayer, laLayer, mexLayer];
+    // Define Mega Cities and Large Cities layers
+    const megaCities = megaCityLayer;
+    const largeCities = largeCityLayer;
 
-    // Populate dropdown with city names
+    //fill City Dropdown
     cities.forEach(city => {
         const option = iframeDoc.createElement("option");
         option.value = city.name;
@@ -399,7 +450,7 @@ htmlIframe.onload = function () {
         citySelect.appendChild(option);
     });
 
-    // Handle dropdown selection to zoom and show the correct city
+    //  City Dropdown Selection
     citySelect.addEventListener("change", () => {
         const selectedCity = cities.find(c => c.name === citySelect.value);
         if (selectedCity) {
@@ -415,19 +466,19 @@ htmlIframe.onload = function () {
         }
     });
 
-    // Handle Mega Cities checkbox
+    //  Mega Cities Checkbox
     megaCitiesCheck.addEventListener("change", () => {
-        const isChecked = megaCitiesCheck.checked;
-
-        // Toggle visibility of mega cities
-        megaCities.forEach(layer => {
-            layer.visible = isChecked;
-        });
-
-        console.log(isChecked ? "Mega Cities are now visible." : "Mega Cities are now hidden.");
+        megaCities.visible = megaCitiesCheck.checked;
+        console.log(megaCitiesCheck.checked ? "Mega Cities are now visible." : "Mega Cities are now hidden.");
     });
 
-    //  Populate Case Study Filter (Template)
+    // Large Cities Checkbox
+    largeCitiesCheck.addEventListener("change", () => {
+        largeCities.visible = largeCitiesCheck.checked;
+        console.log(largeCitiesCheck.checked ? "Large Cities are now visible." : "Large Cities are now hidden.");
+    });
+
+    //  Case Study Dropdown
     const caseStudyOptions = ["Mitigation", "Adaptation", "Hybrid"];
 
     caseStudyOptions.forEach(optionText => {
@@ -437,16 +488,16 @@ htmlIframe.onload = function () {
         caseStudySelect.appendChild(option);
     });
 
-    //  Handle Case Study Selection (Currently just logs selection)
+    // e Case Study Selection (For Future Use)
     caseStudySelect.addEventListener("change", () => {
         const selectedCaseStudy = caseStudySelect.value;
         console.log(`Case Study selected: ${selectedCaseStudy}`);
-        // 🚀 Future implementation: Apply filtering based on the case study type
     });
 
-    console.log("City filter, Mega Cities checkbox, and Case Study dropdown successfully injected into info.html");
+    console.log("City filter, Mega Cities, Large Cities, and Case Study dropdown successfully injected into info.html");
 };
 /////////////////////////////////////////////////////////////////////////////////// end of filter
+
 
 const featureExpand = new Expand({
   view: activeView,
