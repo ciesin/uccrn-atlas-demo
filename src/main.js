@@ -478,7 +478,7 @@ htmlIframe.onload = function () {
         console.log(largeCitiesCheck.checked ? "Large Cities are now visible." : "Large Cities are now hidden.");
     });
 
-    //  Case Study Dropdown
+    //  Case Study Type Dropdown
     const caseStudyOptions = ["Mitigation", "Adaptation", "Hybrid"];
 
     caseStudyOptions.forEach(optionText => {
@@ -488,10 +488,26 @@ htmlIframe.onload = function () {
         caseStudySelect.appendChild(option);
     });
 
-    // e Case Study Selection (For Future Use)
+    // Case Study Type Selection (For Future Use)
     caseStudySelect.addEventListener("change", () => {
         const selectedCaseStudy = caseStudySelect.value;
         console.log(`Case Study selected: ${selectedCaseStudy}`);
+    });
+
+    //  Case Study Provenance Dropdown
+    const provenanceOptions = ["Peer-reviewed", 	"Government document", 	"City network", "Knowledge network", "Non-government organization", "Other"];
+
+    provenanceOptions.forEach(optionText => {
+        const option = iframeDoc.createElement("option");
+        option.value = optionText;
+        option.textContent = optionText;
+        provenanceSelect.appendChild(option);
+    });
+
+    // Case Study Type Selection (For Future Use)
+    provenanceSelect.addEventListener("change", () => {
+        const provenanceStudy = provenanceSelect.value;
+        console.log(`Case Study selected: ${provenanceStudy}`);
     });
 
     console.log("City filter, Mega Cities, Large Cities, and Case Study dropdown successfully injected into info.html");
