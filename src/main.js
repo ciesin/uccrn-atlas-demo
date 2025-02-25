@@ -195,8 +195,8 @@ const megaCityLayer = new GeoJSONLayer({
         symbol: {
             type: "simple-marker",
             style: "circle",
-            color: [255, 0, 0, 1], 
-            size: 8, // 
+            color: [0, 0, 255, 1], 
+            size: 40, // 
             outline: {
                 color: [0, 0, 0, 0], 
                 width: 0
@@ -215,8 +215,8 @@ const largeCityLayer = new GeoJSONLayer({
         symbol: {
             type: "simple-marker",
             style: "circle", 
-            color: [255, 255, 0, 1], 
-            size: 6, // 
+            color: [0, 128, 0, 1], 
+            size: 20, // 
             outline: {
                 color: [0, 0, 0, 0], 
                 width: 0
