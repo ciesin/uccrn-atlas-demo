@@ -417,8 +417,9 @@ htmlIframe.onload = function () {
     const megaCitiesCheck = iframeDoc.getElementById("megaCitiesCheck");
     const largeCitiesCheck = iframeDoc.getElementById("largeCitiesCheck");
     const caseStudySelect = iframeDoc.getElementById("caseStudySelect");
+    const provenanceSelect = iframeDoc.getElementById("provenanceSelect");
 
-    if (!citySelect || !megaCitiesCheck || !largeCitiesCheck || !caseStudySelect) {
+    if (!citySelect || !megaCitiesCheck || !largeCitiesCheck || !caseStudySelect || !provenanceSelect) {
         console.error("Dropdowns not found in info.html");
         return;
     }
