@@ -32,32 +32,45 @@
         </select>
     </div>
     <br>
-        
-        
-    <!-- Mega Cities Checkbox -->
-    City Population: 
-        
-    <div id="megaCitiesContainer">
-        <label>
-            <input type="checkbox" id="megaCitiesCheck">
-            Show Mega Cities
-        </label>
-    </div>
-        
-    <div id="largeCitiesContainer">
-        <label>
-            <input type="checkbox" id="largeCitiesCheck">
-            Show Large Cities
-        </label>
-    </div>
-        
 
-    <div id="smallCitiesContainer">
+
+    <!-- Mega Cities Checkbox -->
+    City Population:
+        
+    <div id="megaCitiesContainer" class="filter-container">
+        <label>
+            <input type="checkbox" id="megaCitiesCheck" checked> <!-- Default Checked -->
+            Mega Cities
+        </label>
+    </div>
+
+    <!-- Large Cities Checkbox -->
+    <div id="largeCitiesContainer" class="filter-container">
+        <label>
+            <input type="checkbox" id="largeCitiesCheck" checked> <!-- Default Checked -->
+            Large Cities
+        </label>
+    </div>
+
+        <div id="smallCitiesContainer">
         <label>
             <input type="checkbox" id="smallCitiesCheck">
             Show Small Cities
         </label>
     </div>
+
+    <br>
+        
+    <!-- Case Study Dropdown -->
+    Climate Intervention:
+        
+    <div id="caseStudyContainer" class="filter-container">
+        <label for="caseStudySelect">Select a Case Study:</label>
+        <select id="caseStudySelect" class="esri-input esri-select">
+            <option value="" selected disabled>Choose a case study type...</option>
+        </select>
+    </div> <!-- Closing comment added for clarity -->
+
         
     <br>
 
@@ -70,17 +83,6 @@
     </div> <!-- Closing comment added for clarity -->
     
     <br>
-        
-    <!-- Case Study Dropdown -->
-    <div id="caseStudyContainer">
-        <label for="caseStudySelect">Climate Intervention:</label>
-        <select id="caseStudySelect" class="esri-input esri-select">
-            <option value="" selected disabled>Choose a case study type...</option>
-        </select>
-    </div> <!-- Closing comment added for clarity -->
-        
-    <br>
-
         
     <!-- Solutions Checkbox -->
     Solutions:
