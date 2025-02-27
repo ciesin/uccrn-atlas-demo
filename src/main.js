@@ -278,6 +278,21 @@ Layer.fromPortalItem({
   });
 });
 
+// Add portal layer for population Cover
+Layer.fromPortalItem({
+  portalItem: {
+    id: "9778e7bddfdc4b7889fd2f385e8346f0"
+  }
+}).then((layer) => {
+  layer.visible = true;
+  map.add(layer);
+
+  // Add layer to layer list
+  layerList.operationalItems.add({
+    layer: layer,
+    title: "Population count 2025 (GHSL_3arcsec)"
+  });
+});
 
 // Setup portal and group query
 const portal = new Portal();
