@@ -84,6 +84,7 @@ const yceouhi_v4 = new ImageryLayer({
     content: "{Raster.ServicePixelValue} Celcius",
     returnPixelValues: false
   },
+  visible: false
 });
 
 const lecz_v3 = new ImageryLayer({
@@ -276,7 +277,6 @@ Layer.fromPortalItem({
     title: "Land Cover 2023 MODIS"
   });
 });
-
 
 
 // Setup portal and group query
