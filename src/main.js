@@ -25,7 +25,7 @@ import "@esri/calcite-components/dist/calcite/calcite.css";
 import "./style.css";
 
 // Set the API key
-esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurIWA0Kb8hy8QYktHa6tfxwpxL5sq5rL-OKSuRlzZC9F2Vx9RXZcShiMwuHMhLzuysGK9DOZXmlj8YtO2q-kOSOKJDJvfGUXZvDIQFnEYAcX1-GyD7A6h2ctULOaxG58EdiJ2r7EN13WWi2UbSYOGXS-ZOcb_XWNfetLgtAVFJc5JdCw2uxz1O3cMlKRkpu9oae3RWwAU6gtPusEZVd6hbjY.AT1_ZoJgL2zc";
+esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 
 // Create grey canvas basemap
 const basemap = Basemap.fromId("dark-gray-vector");
