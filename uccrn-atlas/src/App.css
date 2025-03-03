@@ -86,11 +86,541 @@
   font-weight: bold;
   padding: 3px 6px;
   border-radius: 4px;
-  text-transform: uppercase;
   pointer-events: auto; /* Re-enable clicks on the badge */
   position: absolute;
   top: -10px;
-  right: 8px;
+  right: 6px; /* Changed from 8px to 6px to move 2px to the right */
   z-index: 1200; /* Ensure it's above other elements */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Add subtle shadow for depth */
+}
+
+/* Side panel styles */
+.side-panel {
+  position: absolute;
+  top: 16px; /* Changed from 25px to 16px */
+  right: 0;
+  height: calc(100% - 10%);
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px 0 0 8px;
+  z-index: 1000;
+  display: flex;
+  transition: transform 0.3s ease;
+  max-width: 350px;
+}
+
+.side-panel.open {
+  transform: translateX(0);
+}
+
+.side-panel.closed {
+  transform: translateX(100%); /* Changed from calc(100% - 30px) to 100% to fully hide */
+}
+
+/* Modify the panel toggle to always be visible */
+.panel-toggle {
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 40px;
+  background-color: white;
+  border: none;
+  border-radius: 4px 0 0 4px;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #333;
+  outline: none;
+  z-index: 1001; /* Ensure it's above the panel */
+}
+
+.panel-toggle:hover {
+  background-color: #f5f5f5;
+}
+
+.panel-content {
+  width: 320px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.panel-content h2 {
+  margin-top: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.panel-section {
+  margin-bottom: 20px;
+}
+
+.panel-section h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
+}
+
+/* Adjust map controls position to account for side panel */
+.mapboxgl-ctrl-top-right {
+  padding-top: 10px;
+  right: 5px; /* Keep the existing right margin */
+  transition: right 0.3s ease;
+}
+
+/* Move controls when panel is open */
+.side-panel.open ~ #map-container .mapboxgl-ctrl-top-right {
+  right: 355px; /* Keep the existing adjustment for side panel */
+  padding-top: 10px; /* Make sure this is also applied when side panel is open */
+}
+
+/* Move controls back when panel is closed */
+.side-panel.closed + #map-container .mapboxgl-ctrl-top-right {
+  right: 5px; /* Reduced from 15px to 5px (10px reduction) */
+}
+
+/* Ensure controls maintain proper spacing with the top padding */
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl {
+  margin: 5px 5px 10px 0; /* Update to match the 5px top margin */
+}
+
+/* Ensure first control has proper spacing from the top */
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl:first-child {
+  margin-top: 5px; /* Update to match the 5px top margin */
+}
+
+/* Welcome Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(191, 191, 191, 0); /* Reduced opacity for more translucency */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.welcome-modal {
+  background-color: rgba(255, 255, 255, 0.65); /* Reduced opacity for more translucency */
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0;
+  backdrop-filter: blur(5%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-content {
+  padding: 30px;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8); /* Slightly transparent text */
+  margin-bottom: 20px;
+}
+
+.modal-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.7); /* Slightly transparent text */
+  margin-bottom: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 30px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.4); /* Even more translucent footer */
+}
+
+.get-started-btn {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.get-started-btn:hover {
+  background-color: #0d66da;
+}
+
+.get-started-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.4);
+}
+
+/* Update the rotation button styles */
+
+/* Container for bottom left map controls */
+.map-controls-bottom-left {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin: 0 0 10px 10px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px; /* Space between buttons */
+}
+
+/* Update rotation button to be contained in the new container */
+.rotation-button {
+  position: relative; /* Changed from absolute */
+  width: 29px;
+  height: 29px;
+  background-color: #fff;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Style for the projection toggle button - match rotation button */
+.projection-button {
+  width: 29px;
+  height: 29px;
+  background-color: #fff;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Shared hover styles */
+.rotation-button:hover,
+.projection-button:hover {
+  background-color: #f2f2f2;
+}
+
+/* Shared focus styles */
+.rotation-button:focus,
+.projection-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1), 0 0 0 4px rgba(0, 149, 255, 0.5);
+}
+
+/* Shared icon styles */
+.rotation-button svg,
+.projection-button svg {
+  fill: #333;
+  width: 18px;
+  height: 18px;
+}
+
+/* Style for disabled rotation button */
+.rotation-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rotation-button:disabled:hover {
+  background-color: #fff; /* Don't change background when disabled */
+}
+
+/* Ensure rotation button icons are properly sized */
+.rotation-button svg {
+  fill: #333;
+  width: 18px;
+  height: 18px;
+}
+
+/* For consistency with other Mapbox controls */
+.mapboxgl-ctrl-group .rotation-button {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid #ddd;
+}
+
+.mapboxgl-ctrl-group .rotation-button:last-child {
+  border-bottom: none;
+}
+
+/* Add these styles for the geocoder search control */
+
+/* Ensure the geocoder control is styled consistently */
+.mapboxgl-ctrl-geocoder {
+  min-width: 250px;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  border-radius: 4px !important;
+  margin: 5px !important;
+}
+
+/* Style the search input */
+.mapboxgl-ctrl-geocoder input[type='text'] {
+  font-size: 14px;
+  height: 36px;
+}
+
+/* Style the search results */
+.mapboxgl-ctrl-geocoder .suggestions {
+  background-color: #fff;
+  border-radius: 4px;
+  margin-top: 2px;
+}
+
+.mapboxgl-ctrl-geocoder .suggestions > li > a {
+  padding: 8px 12px;
+  color: #333;
+}
+
+.mapboxgl-ctrl-geocoder .suggestions > .active > a, 
+.mapboxgl-ctrl-geocoder .suggestions > li > a:hover {
+  background-color: rgba(26, 115, 232, 0.1);
+  color: #1a73e8;
+}
+
+/* Make search control responsive */
+@media screen and (max-width: 640px) {
+  .mapboxgl-ctrl-geocoder {
+    min-width: 200px;
+    width: calc(100% - 80px);
+  }
+}
+
+/* Add this to your existing CSS */
+
+/* Search button in nav controls */
+.search-control-button {
+  display: block;
+  padding: 0;
+  outline: none;
+  width: 29px !important;
+  height: 29px !important;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.search-control-button svg {
+  fill: #333;
+  width: 16px;
+  height: 16px;
+  margin: 5px;
+}
+
+.search-control-button.active {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Geocoder container styling */
+.geocoder-container {
+  width: 250px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  background-color: white;
+}
+
+/* Reset some of the mapboxgl-ctrl-geocoder styles */
+.geocoder-container .mapboxgl-ctrl-geocoder {
+  min-width: auto;
+  width: 100%;
+  box-shadow: none;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+/* Layer list styles */
+.layers-control-button svg {
+  fill: #333;
+  width: 16px;
+  height: 16px;
+  margin: 5px;
+}
+
+/* Update layer list position and styling for better positioning */
+
+.layer-list {
+  position: absolute;
+  top: 150px; /* Increase distance from top to avoid controls */
+  right: 10px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 12px;
+  z-index: 100;
+  min-width: 180px;
+  max-width: 250px;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.layer-list.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.layer-list.closed {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.layer-list h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.layer-item {
+  margin-bottom: 10px;
+}
+
+.layer-item label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.layer-item input {
+  margin-right: 10px;
+}
+
+/* Custom checkboxes for better visual */
+.layer-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-radius: 3px;
+  outline: none;
+  margin-right: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.layer-item input[type="checkbox"]:checked {
+  background-color: #1a73e8;
+  border-color: #1a73e8;
+}
+
+.layer-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.layer-item input[type="checkbox"]:hover {
+  border-color: #1a73e8;
+}
+
+/* Add a small close button */
+.layer-list-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.layer-list-close::before,
+.layer-list-close::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 2px;
+  background-color: #888;
+}
+
+.layer-list-close::before {
+  transform: rotate(45deg);
+}
+
+.layer-list-close::after {
+  transform: rotate(-45deg);
+}
+
+.layer-list-close:hover::before,
+.layer-list-close:hover::after {
+  background-color: #333;
+}
+
+/* Adjust position when side panel is open */
+.side-panel.open ~ .layer-list {
+  right: 370px;
+}
+
+/* Transition for the layer list position */
+.layer-list {
+  transition: right 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Mobile responsiveness for layer list */
+@media screen and (max-width: 640px) {
+  .layer-list {
+    top: auto;
+    bottom: 60px; /* Position at bottom on mobile to avoid controls */
+    right: 10px;
+    max-width: 200px;
+  }
+  
+  .side-panel.open ~ .layer-list {
+    right: 10px; /* Keep it at the right side even when panel is open on mobile */
+  }
+}
+
+/* Add margin to control group */
+.mapboxgl-ctrl.mapboxgl-ctrl-group {
+  margin: 5px 5px 10px 0; /* top right bottom left */
+  border-radius: 4px;
 }
