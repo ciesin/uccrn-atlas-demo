@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+#root {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  font-family: 'Inter', sans-serif; /* Modern font applied to everything */
+}
+
+#map-container {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.sidebar {
+  background-color: rgb(35 55 75 / 90%);
+  color: #fff;
+  padding: 6px 12px;
+  font-family: 'Inter', sans-serif;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 12px;
+  border-radius: 4px;
+}
+
+.reset-button {
+  position: absolute;
+  top: 50px;
+  z-index: 1;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* Hide Mapbox logo */
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+
+/* Header styles */
+.app-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px;
+  pointer-events: none; /* Allow clicks to pass through to the map */
+}
+
+.logo-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 8px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: auto; /* Re-enable clicks on the logo */
+  position: relative;
+  padding-top: 10px; /* Add extra padding on top for the badge */
+}
+
+.logo-text {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+}
+
+.beta-badge {
+  background-color: #1a73e8;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  pointer-events: auto; /* Re-enable clicks on the badge */
+  position: absolute;
+  top: -10px;
+  right: 8px;
+  z-index: 1200; /* Ensure it's above other elements */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Add subtle shadow for depth */
+}
