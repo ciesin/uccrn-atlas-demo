@@ -207,7 +207,7 @@ const map = new Map({
 //////////////////////////////////////////////////////////////////checked boxes 
 // Load Mega City Layer with Custom Symbol
 const megaCityLayer = new GeoJSONLayer({
-    url: new URL("../cities/Mega_City.geojson", import.meta.url).href,
+    url: new URL("../cities/MegaCity.geojson", import.meta.url).href,
     title: "Mega Cities",
     visible: true, 
     renderer: {
