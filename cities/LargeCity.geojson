@@ -1,0 +1,75 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [103.81980000000004, 1.352100000000064]
+      },
+      "properties": {
+        "OBJECTID": 1,
+        "City": "Singapore",
+        "Longitude__X_": 103.8198,
+        "Latitude__Y_": 1.3521000000000001
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [12.568300000000022, 55.676100000000076]
+      },
+      "properties": {
+        "OBJECTID": 2,
+        "City": "Copenhagen",
+        "Longitude__X_": 12.568300000000001,
+        "Latitude__Y_": 55.676099999999998
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [31.021800000000042, -29.858699999999942]
+      },
+      "properties": {
+        "OBJECTID": 3,
+        "City": "Durban",
+        "Longitude__X_": 31.021799999999999,
+        "Latitude__Y_": -29.858699999999999
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [14.268100000000043, 40.851800000000074]
+      },
+      "properties": {
+        "OBJECTID": 4,
+        "City": "Naples",
+        "Longitude__X_": 14.2681,
+        "Latitude__Y_": 40.8518
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [8.530000000000034, 12.002200000000057]
+      },
+      "properties": {
+        "OBJECTID": 5,
+        "City": "Kano",
+        "Longitude__X_": 8.53,
+        "Latitude__Y_": 12.0022
+      }
+    }
+  ]
+}
