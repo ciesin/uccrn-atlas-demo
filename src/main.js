@@ -227,7 +227,7 @@ const megaCityLayer = new GeoJSONLayer({
 
 // Load Large City Layer with Custom Symbol
 const largeCityLayer = new GeoJSONLayer({
-    url: new URL("../cities/Large_City.geojson", import.meta.url).href,
+    url: new URL("../cities/LargeCity.geojson", import.meta.url).href,
     title: "Large Cities",
     visible: true, 
     renderer: {
