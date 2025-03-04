@@ -17,6 +17,19 @@ function App() {
     clusters: true,
     points: true
   });
+  const [filters, setFilters] = useState({
+    city: '',
+    population: 'all',
+    climateIntervention: 'all',
+    climateZone: 'all',
+    keyword: ''
+  });
+  const [availableValues, setAvailableValues] = useState({
+    climateInterventions: [],
+    climateZones: [],
+    keywords: []
+  });
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const mapRef = useRef();
   const mapContainerRef = useRef();
   const userInteractingRef = useRef(false);
@@ -73,6 +86,138 @@ function App() {
       }
     }, 100); // Small delay to ensure DOM is updated
   }, []);
+
+  const updateFilter = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const applyFilters = useCallback(() => {
+    if (!mapRef.current) return;
+
+    // Create a filter expression for Mapbox GL JS
+    let filterExpression = ['all'];
+
+    // Add city filter if specified
+    if (filters.city) {
+      filterExpression.push([
+        'any',
+        ['to-string', ['get', 'city_name']].includes(filters.city.toLowerCase()),
+        ['to-string', ['get', 'City']].includes(filters.city.toLowerCase())
+      ]);
+    }
+
+    // Add population filter if specified
+    if (filters.population !== 'all') {
+      const [min, max] = filters.population.split('-').map(Number);
+      if (!isNaN(max)) {
+        filterExpression.push(['<=', ['to-number', ['get', 'Metropolitan_Population']], max]);
+      }
+      if (!isNaN(min)) {
+        filterExpression.push(['>=', ['to-number', ['get', 'Metropolitan_Population']], min]);
+      }
+    }
+
+    // Add climate intervention filter if specified
+    if (filters.climateIntervention !== 'all') {
+      filterExpression.push([
+        'any',
+        ['==', ['to-string', ['get', 'Climate_Intervention']], filters.climateIntervention]
+      ]);
+    }
+
+    // Add climate zone filter if specified
+    if (filters.climateZone !== 'all') {
+      filterExpression.push([
+        '==',
+        ['to-string', ['get', 'Climate_Zone']],
+        filters.climateZone
+      ]);
+    }
+
+    // Add keyword filter if specified
+    if (filters.keyword) {
+      filterExpression.push([
+        'any',
+        ['to-string', ['get', 'Keywords']].includes(filters.keyword.toLowerCase()),
+        ['to-string', ['get', 'Solutions']].includes(filters.keyword.toLowerCase()),
+        ['to-string', ['get', 'Title']].includes(filters.keyword.toLowerCase())
+      ]);
+    }
+
+    // Apply the filter to the unclustered points layer
+    mapRef.current.setFilter('unclustered-point', filterExpression);
+
+    // We need special handling for clusters since they need to be filtered differently
+    // This is more complex and requires filtering the source data
+    // We'll use a custom property to track which points should be included in clusters
+    const sourceData = mapRef.current.getSource('uccrn-cities')._data;
+    
+    if (sourceData && sourceData.features) {
+      // Apply filters to each feature
+      sourceData.features.forEach(feature => {
+        let matches = true;
+        
+        if (filters.city) {
+          const cityName = (feature.properties.city_name || feature.properties.City || '').toLowerCase();
+          matches = matches && cityName.includes(filters.city.toLowerCase());
+        }
+        
+        if (filters.climateIntervention !== 'all') {
+          matches = matches && feature.properties.Climate_Intervention === filters.climateIntervention;
+        }
+        
+        if (filters.climateZone !== 'all') {
+          matches = matches && feature.properties.Climate_Zone === filters.climateZone;
+        }
+        
+        if (filters.keyword) {
+          const keywords = (feature.properties.Keywords || '').toLowerCase();
+          const solutions = (feature.properties.Solutions || '').toLowerCase();
+          const title = (feature.properties.Title || '').toLowerCase();
+          matches = matches && (
+            keywords.includes(filters.keyword.toLowerCase()) || 
+            solutions.includes(filters.keyword.toLowerCase()) || 
+            title.includes(filters.keyword.toLowerCase())
+          );
+        }
+        
+        if (filters.population !== 'all') {
+          const population = parseInt(feature.properties.Metropolitan_Population || '0', 10);
+          const [min, max] = filters.population.split('-').map(Number);
+          if (!isNaN(max)) {
+            matches = matches && population <= max;
+          }
+          if (!isNaN(min)) {
+            matches = matches && population >= min;
+          }
+        }
+        
+        // Store the filter result on the feature
+        feature.properties.filter_match = matches;
+      });
+      
+      // Update the source data with our filtered features
+      mapRef.current.getSource('uccrn-cities').setData(sourceData);
+      
+      // Update the cluster filter to only include points that match our filter
+      mapRef.current.setFilter('clusters', [
+        'all',
+        ['has', 'point_count'],
+        ['==', ['get', 'filter_match'], true]
+      ]);
+      
+      // Update cluster count filter as well
+      mapRef.current.setFilter('cluster-count', [
+        'all',
+        ['has', 'point_count'],
+        ['==', ['get', 'filter_match'], true]
+      ]);
+    }
+
+  }, [filters]);
 
   useEffect(() => {
     // Use the environment variable instead of hardcoded API key
@@ -198,11 +343,11 @@ function App() {
 
     // Wait for the map to load before adding sources and layers
     mapRef.current.on('load', () => {
-      // Add Esri Feature Service as a source
-      mapRef.current.addSource('esri-cities', {
+      // Add UCCRN CSA Feature Service as a source
+      mapRef.current.addSource('uccrn-cities', {
         type: 'geojson',
-        // Using ArcGIS REST API with GeoJSON output format
-        data: 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Cities/FeatureServer/0/query?where=POP_RANK<3&outFields=*&f=geojson',
+        // Using the UCCRN CSA Feature Service with GeoJSON output format
+        data: 'https://services2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/uccrn_csa/FeatureServer/0/query?where=1=1&outFields=*&f=geojson',
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50
@@ -212,7 +357,7 @@ function App() {
       mapRef.current.addLayer({
         id: 'clusters',
         type: 'circle',
-        source: 'esri-cities',
+        source: 'uccrn-cities',
         filter: ['has', 'point_count'],
         layout: {
           visibility: 'visible' // Set initial visibility to match state
@@ -221,20 +366,20 @@ function App() {
           'circle-color': [
             'step',
             ['get', 'point_count'],
-            '#51bbd6',
-            100,
-            '#f1f075',
-            750,
-            '#f28cb1'
+            '#51bbd6', // Light blue for small clusters
+            5,         // Number of points threshold
+            '#f1f075', // Yellow for medium clusters
+            10,        // Number of points threshold
+            '#f28cb1'  // Pink for large clusters
           ],
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            20,
-            100,
-            30,
-            750,
-            40
+            20,        // 20px radius for small clusters
+            5,         // Number of points threshold
+            25,        // 25px radius for medium clusters
+            10,        // Number of points threshold
+            30         // 30px radius for large clusters
           ]
         }
       });
@@ -243,7 +388,7 @@ function App() {
       mapRef.current.addLayer({
         id: 'cluster-count',
         type: 'symbol',
-        source: 'esri-cities',
+        source: 'uccrn-cities',
         filter: ['has', 'point_count'],
         layout: {
           visibility: 'visible', // Set initial visibility to match state
@@ -257,14 +402,14 @@ function App() {
       mapRef.current.addLayer({
         id: 'unclustered-point',
         type: 'circle',
-        source: 'esri-cities',
+        source: 'uccrn-cities',
         filter: ['!', ['has', 'point_count']],
         layout: {
           visibility: 'visible' // Set initial visibility to match state
         },
         paint: {
           'circle-color': '#1a73e8',
-          'circle-radius': 6,
+          'circle-radius': 8,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff'
         }
@@ -277,7 +422,7 @@ function App() {
         });
         const clusterId = features[0].properties.cluster_id;
         
-        mapRef.current.getSource('esri-cities').getClusterExpansionZoom(
+        mapRef.current.getSource('uccrn-cities').getClusterExpansionZoom(
           clusterId,
           (err, zoom) => {
             if (err) return;
@@ -290,20 +435,38 @@ function App() {
         );
       });
 
-      // Add click event for individual points
+      // Add click event for individual points with updated property fields
       mapRef.current.on('click', 'unclustered-point', (e) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
         const properties = e.features[0].properties;
         
-        // Create popup content
+        // Create popup content with the new fields
         const popupContent = `
-          <h3>${properties.CITY_NAME}</h3>
-          <p>Country: ${properties.CNTRY_NAME}</p>
-          <p>Population: ${properties.POP}</p>
+          <div class="popup-content">
+            <h3>${properties.city_name || properties.City || 'Unknown City'}</h3>
+            <p><strong>Country:</strong> ${properties.Country || 'Not specified'}</p>
+            <p><strong>Region:</strong> ${properties.Region || 'Not specified'}</p>
+            <p><strong>Climate Zone:</strong> ${properties.Climate_Zone || 'Not specified'}</p>
+            ${properties.Title ? `<p><strong>Study:</strong> ${properties.Title}</p>` : ''}
+            ${properties.Solutions ? `<p><strong>Solutions:</strong> ${properties.Solutions}</p>` : ''}
+            ${properties.Climate_Intervention ? `<p><strong>Interventions:</strong> ${properties.Climate_Intervention}</p>` : ''}
+            ${properties.Abstract ? 
+              `<div class="abstract-section">
+                <h4>Abstract</h4>
+                <p>${properties.Abstract.length > 200 ? properties.Abstract.substring(0, 200) + '...' : properties.Abstract}</p>
+               </div>` 
+            : ''}
+            ${properties.DOI ? `<p><a href="https://doi.org/${properties.DOI}" target="_blank">View Publication</a></p>` : ''}
+          </div>
         `;
         
         // Create and add popup
-        new mapboxgl.Popup()
+        new mapboxgl.Popup({
+          maxWidth: '300px',
+          closeButton: true,
+          closeOnClick: true,
+          className: 'uccrn-popup'
+        })
           .setLngLat(coordinates)
           .setHTML(popupContent)
           .addTo(mapRef.current);
@@ -481,6 +644,57 @@ function App() {
     });
   };
 
+  useEffect(() => {
+    const extractFilterValues = () => {
+      if (!mapRef.current) return;
+      
+      const sourceData = mapRef.current.getSource('uccrn-cities')?._data;
+      if (!sourceData || !sourceData.features) return;
+      
+      // Extract unique values for dropdown filters
+      const interventions = new Set();
+      const zones = new Set();
+      const keywordSet = new Set();
+      
+      sourceData.features.forEach(feature => {
+        if (feature.properties.Climate_Intervention) {
+          interventions.add(feature.properties.Climate_Intervention);
+        }
+        
+        if (feature.properties.Climate_Zone) {
+          zones.add(feature.properties.Climate_Zone);
+        }
+        
+        if (feature.properties.Keywords) {
+          feature.properties.Keywords.split(',').forEach(keyword => {
+            keywordSet.add(keyword.trim());
+          });
+        }
+      });
+      
+      setAvailableValues({
+        climateInterventions: Array.from(interventions).sort(),
+        climateZones: Array.from(zones).sort(),
+        keywords: Array.from(keywordSet).sort()
+      });
+    };
+
+    // Try to extract values once the map is loaded
+    if (mapRef.current) {
+      mapRef.current.once('sourcedata', (e) => {
+        if (e.sourceId === 'uccrn-cities' && mapRef.current.isSourceLoaded('uccrn-cities')) {
+          extractFilterValues();
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mapRef.current && mapRef.current.isStyleLoaded()) {
+      applyFilters();
+    }
+  }, [filters, applyFilters]);
+
   return (
     <>
       <div className="app-header">
@@ -499,10 +713,76 @@ function App() {
           {isPanelOpen ? '→' : '←'}
         </button>
         <div className="panel-content">
-          <h2>City Solutions Case Studies</h2>
-          <p>The map displays major cities from around the world.</p>
-          <p>Click on clusters to zoom in, or on individual cities to see more information.</p>
-        </div>
+            <h2>City Solutions Case Studies</h2>
+            <p>The map displays major cities from around the world.</p>
+            <p>Click on clusters to zoom in, or on individual cities to see more information.</p>
+            <div className="filters-section">
+              <h3 className="filter-header">Filter Case Studies</h3>
+              
+              <div className="filter-controls">
+                {/* Population filter */}
+                <div className="filter-group">
+                  <label htmlFor="population-filter">City Population</label>
+                  <select 
+                    id="population-filter"
+                    value={filters.population}
+                    onChange={(e) => updateFilter('population', e.target.value)}
+                  >
+                    <option value="all">All Populations</option>
+                    <option value="0-100000">Under 100,000</option>
+                    <option value="100000-1000000">100,000 - 1 million</option>
+                    <option value="1000000-5000000">1 - 5 million</option>
+                    <option value="5000000-10000000">5 - 10 million</option>
+                    <option value="10000000-100000000">Over 10 million</option>
+                  </select>
+                </div>
+                
+                {/* Climate Zone filter */}
+                <div className="filter-group">
+                  <label htmlFor="climate-zone-filter">Climate Zone</label>
+                  <select 
+                    id="climate-zone-filter"
+                    value={filters.climateZone}
+                    onChange={(e) => updateFilter('climateZone', e.target.value)}
+                  >
+                    <option value="all">All Climate Zones</option>
+                    {availableValues.climateZones.map(zone => (
+                      <option key={zone} value={zone}>{zone}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Climate Intervention filter */}
+                <div className="filter-group">
+                  <label htmlFor="intervention-filter">Climate Intervention</label>
+                  <select 
+                    id="intervention-filter"
+                    value={filters.climateIntervention}
+                    onChange={(e) => updateFilter('climateIntervention', e.target.value)}
+                  >
+                    <option value="all">All Interventions</option>
+                    {availableValues.climateInterventions.map(intervention => (
+                      <option key={intervention} value={intervention}>{intervention}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Reset button */}
+                <button 
+                  className="filter-reset-button"
+                  onClick={() => setFilters({
+                    city: '',
+                    population: 'all',
+                    climateIntervention: 'all',
+                    climateZone: 'all',
+                    keyword: ''
+                  })}
+                >
+                  Reset Filters
+                </button>
+              </div>
+            </div>
+          </div>
       </div>
       
       <div className="map-controls-bottom-left">

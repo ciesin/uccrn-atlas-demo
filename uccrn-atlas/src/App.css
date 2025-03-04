@@ -1,5 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Add these styles to prevent horizontal scrolling */
+
+/* Make sure the root elements don't allow overflow */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent horizontal and vertical scrolling at the document level */
+}
+
 #root {
   position: absolute;
   top: 0;
@@ -17,6 +28,7 @@
   bottom: 0;
   left: 0;
   right: 0;
+  overflow: hidden; /* Ensure the map container doesn't overflow */
 }
 
 .sidebar {
@@ -107,6 +119,8 @@
   display: flex;
   transition: transform 0.3s ease;
   max-width: 350px;
+  width: 350px; /* Fix the side panel styling to use transform instead of margins */
+  transform: translateX(0);
 }
 
 .side-panel.open {
@@ -147,6 +161,8 @@
   width: 320px;
   padding: 20px;
   overflow-y: auto;
+  overflow-x: hidden; /* Ensure the panel content doesn't overflow */
+  height: 100%;
 }
 
 .panel-content h2 {
@@ -157,6 +173,12 @@
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   margin-bottom: 15px;
+}
+
+.panel-content p {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .panel-section {
@@ -623,4 +645,144 @@
 .mapboxgl-ctrl.mapboxgl-ctrl-group {
   margin: 5px 5px 10px 0; /* top right bottom left */
   border-radius: 4px;
+}
+
+/* Add these styles for the UCCRN popups */
+.uccrn-popup {
+  font-family: 'Inter', sans-serif;
+}
+
+.uccrn-popup .mapboxgl-popup-content {
+  padding: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.uccrn-popup h3 {
+  margin: 0 0 10px 0;
+  color: #1a73e8;
+  font-size: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.uccrn-popup h4 {
+  margin: 15px 0 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.uccrn-popup p {
+  margin: 5px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.uccrn-popup strong {
+  font-weight: 600;
+}
+
+.uccrn-popup .abstract-section {
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 5px;
+}
+
+.uccrn-popup a {
+  color: #1a73e8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.uccrn-popup a:hover {
+  text-decoration: underline;
+}
+
+/* Filter panel styles */
+.filters-section {
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin: 15px 0;
+  padding: 5px 0;
+  color: #1a73e8;
+  font-weight: 500;
+  user-select: none;
+}
+
+.filter-toggle-icon {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.filter-toggle-icon.expanded {
+  transform: rotate(0deg);
+}
+
+.filter-controls {
+  animation: slide-down 0.3s ease-in-out;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-group input[type="text"],
+.filter-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.filter-group input[type="text"]:focus,
+.filter-group select:focus {
+  border-color: #1a73e8;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
+
+.filter-reset-button {
+  background-color: #f1f3f4;
+  color: #5f6368;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.filter-reset-button:hover {
+  background-color: #e8eaed;
+  color: #202124;
 }
