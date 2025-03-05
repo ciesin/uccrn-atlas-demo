@@ -2,9 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/map.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UCCRN Atlas Demo</title>
+    <style>
+      /* Reset box-shadows on ArcGIS widgets */
+      .esri-widget--button,
+      .esri-component.esri-widget {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

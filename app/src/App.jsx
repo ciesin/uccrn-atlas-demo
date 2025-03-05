@@ -17,6 +17,7 @@ import WMSLayer from "@arcgis/core/layers/WMSLayer";
 import WMTSLayer from "@arcgis/core/layers/WMTSLayer";
 import Portal from "@arcgis/core/portal/Portal";
 import PortalItem from "@arcgis/core/portal/PortalItem";
+import { HomePanel } from "./components";
 
 import "./App.css";
 
@@ -40,10 +41,7 @@ function App() {
     addLayerExpand: null
   });
   const [viewMode, setViewMode] = useState("3D");
-  const [layerUrl, setLayerUrl] = useState("");
-  const [layerType, setLayerType] = useState("featureLayer");
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [homePanelOpen, setHomePanelOpen] = useState(false);
 
   useEffect(() => {
     if (mapDiv.current) {
@@ -86,6 +84,7 @@ function App() {
         setupTimeSlider(map);
         setupLayerWatchers(map);
         setupAddLayerWidget();
+        setupHomePanelToggle();
       });
 
       // Cleanup
@@ -99,6 +98,38 @@ function App() {
       };
     }
   }, []);
+
+  // Add this useEffect to handle UI repositioning when the panel opens/closes
+  useEffect(() => {
+    // Function to adjust UI elements when panel opens/closes
+    const adjustUI = () => {
+      const topRightUI = document.querySelector('.esri-ui-top-right');
+      const bottomRightUI = document.querySelector('.esri-ui-bottom-right');
+      
+      if (topRightUI) {
+        if (homePanelOpen) {
+          topRightUI.classList.add('shifted-for-panel');
+        } else {
+          topRightUI.classList.remove('shifted-for-panel');
+        }
+      }
+      
+      if (bottomRightUI) {
+        if (homePanelOpen) {
+          bottomRightUI.classList.add('shifted-for-panel');
+        } else {
+          bottomRightUI.classList.remove('shifted-for-panel');
+        }
+      }
+    };
+    
+    // Call the function whenever the panel state changes
+    adjustUI();
+    
+    // Small timeout to ensure UI is updated after DOM changes
+    const timeoutId = setTimeout(adjustUI, 50);
+    return () => clearTimeout(timeoutId);
+  }, [homePanelOpen]);
 
   // Setup the "Add Layer" widget
   function setupAddLayerWidget() {
@@ -125,12 +156,14 @@ function App() {
         <input type="text" id="layer-url" class="esri-input" placeholder="Enter URL or Item ID">
       </div>
       <div class="button-group">
-        <button id="add-layer-button" class="esri-button">Add Layer</button>
+        <button id="add-layer-button" class="esri-button">
+          Add Layer
+        </button>
       </div>
       <div id="layer-add-message" class="message-area"></div>
     `;
 
-    // Create an Expand widget for the Add Layer widget
+    // Rest of the function remains unchanged
     const addLayerExpand = new Expand({
       view: appConfig.current.activeView,
       content: addLayerDiv,
@@ -145,7 +178,7 @@ function App() {
     appConfig.current.activeView.ui.add(addLayerExpand, "top-left");
     appConfig.current.addLayerExpand = addLayerExpand;
 
-    // Add event listeners once the DOM elements are created
+    // Rest of the function remains unchanged
     setTimeout(() => {
       const layerTypeSelect = document.getElementById("layer-type");
       const layerUrlInput = document.getElementById("layer-url");
@@ -247,53 +280,55 @@ function App() {
           break;
           
         case "portalItem":
-          const portalItem = new PortalItem({
-            id: url
-          });
-          
-          // Wait for the portal item to load
-          await portalItem.load();
-          
-          // Create the appropriate layer type based on the portal item
-          switch (portalItem.type) {
-            case "Feature Service":
-              layer = new FeatureLayer({
-                portalItem: portalItem
-              });
-              break;
-            case "Map Service":
-              layer = new MapImageLayer({
-                portalItem: portalItem
-              });
-              break;
-            case "Image Service":
-              layer = new ImageryLayer({
-                portalItem: portalItem
-              });
-              break;
-            case "Tile Layer":
-            case "Tile Service":
-              layer = new TileLayer({
-                portalItem: portalItem
-              });
-              break;
-            case "Vector Tile Service":
-              layer = new VectorTileLayer({
-                portalItem: portalItem
-              });
-              break;
-            case "WMS":
-              layer = new WMSLayer({
-                portalItem: portalItem
-              });
-              break;
-            case "WMTS":
-              layer = new WMTSLayer({
-                portalItem: portalItem
-              });
-              break;
-            default:
-              throw new Error(`Unsupported portal item type: ${portalItem.type}`);
+          {
+            const portalItem = new PortalItem({
+              id: url
+            });
+            
+            // Wait for the portal item to load
+            await portalItem.load();
+            
+            // Create the appropriate layer type based on the portal item
+            switch (portalItem.type) {
+              case "Feature Service":
+                layer = new FeatureLayer({
+                  portalItem: portalItem
+                });
+                break;
+              case "Map Service":
+                layer = new MapImageLayer({
+                  portalItem: portalItem
+                });
+                break;
+              case "Image Service":
+                layer = new ImageryLayer({
+                  portalItem: portalItem
+                });
+                break;
+              case "Tile Layer":
+              case "Tile Service":
+                layer = new TileLayer({
+                  portalItem: portalItem
+                });
+                break;
+              case "Vector Tile Service":
+                layer = new VectorTileLayer({
+                  portalItem: portalItem
+                });
+                break;
+              case "WMS":
+                layer = new WMSLayer({
+                  portalItem: portalItem
+                });
+                break;
+              case "WMTS":
+                layer = new WMTSLayer({
+                  portalItem: portalItem
+                });
+                break;
+              default:
+                throw new Error(`Unsupported portal item type: ${portalItem.type}`);
+            }
           }
           break;
           
@@ -320,13 +355,13 @@ function App() {
   }
 
   // Setup time slider widget that appears only for time-enabled layers
-  function setupTimeSlider(map) {
+  function setupTimeSlider() {
     // Create the TimeSlider widget
     const timeSlider = new TimeSlider({
       view: appConfig.current.activeView,
-      mode: "instant", // or "time-window" for range selection
+      mode: "instant", 
       layout: "compact",
-      visible: false // Start hidden, will show only if time-enabled layers are present
+      visible: false 
     });
 
     // Add the TimeSlider widget to the bottom left of the view
@@ -400,6 +435,8 @@ function App() {
     if (!appConfig.current.layerList) {
       appConfig.current.layerList = new LayerList({
         view: appConfig.current.activeView,
+        // Enable drag to reorder layers
+        dragEnabled: true, 
         listItemCreatedFunction: (event) => {
           const item = event.item;
           item.actionsSections = [
@@ -512,6 +549,7 @@ function App() {
   function switchView() {
     const is3D = appConfig.current.activeView.type === "3d";
     const activeViewpoint = appConfig.current.activeView.viewpoint.clone();
+    const panelWasOpen = homePanelOpen; // Store current panel state
 
     // Compute scale conversion factor
     const latitude = appConfig.current.activeView.center.latitude;
@@ -541,18 +579,91 @@ function App() {
       setupWidgets();
       setupTimeSlider(appConfig.current.activeView.map);
       setupLayerWatchers(appConfig.current.activeView.map);
+      setupAddLayerWidget();
+      setupHomePanelToggle();
+      
+      // Restore panel state if it was open
+      if (panelWasOpen) {
+        setTimeout(() => setHomePanelOpen(true), 100);
+      }
     });
   }
+
+  // Add a function to toggle the home panel
+  function toggleHomePanel() {
+    setHomePanelOpen(!homePanelOpen);
+  }
+
+  // Update the setupHomePanelToggle function
+  function setupHomePanelToggle() {
+    // Remove any existing home panel buttons first to avoid duplicates
+    const existingButtons = document.querySelectorAll('[data-button-id="home-panel-toggle"]');
+    existingButtons.forEach(button => button.remove());
+    
+    // Create the button element
+    const button = document.createElement("button");
+    button.className = "esri-component esri-widget--button esri-widget esri-interactive";
+    button.title = "Home Panel";
+    button.setAttribute("aria-label", "Toggle Home Panel");
+    button.setAttribute("data-button-id", "home-panel-toggle");
+    
+    // Explicitly set inline styles to avoid box-shadow
+    button.style.boxShadow = 'none';
+    button.style.webkitBoxShadow = 'none';
+    button.style.mozBoxShadow = 'none';
+    button.style.transform = 'none';
+    button.style.border = 'none';
+    
+    // Create calcite icon
+    const iconElement = document.createElement("calcite-icon");
+    iconElement.setAttribute("icon", "home");
+    iconElement.setAttribute("scale", "s");
+    
+    // Add the icon to the button
+    button.appendChild(iconElement);
+    
+    // Add click event listener
+    button.addEventListener("click", toggleHomePanel);
+    
+    // Add the button to the view
+    appConfig.current.activeView.ui.add(button, "top-right");
+  }
+
+  // Make sure we initialize the Calcite components
+  useEffect(() => {
+    // Import Calcite Components
+    import("@esri/calcite-components/dist/calcite/calcite.css");
+    import("@esri/calcite-components/dist/components/calcite-icon").then(() => {
+      import("@esri/calcite-components/dist/loader").then(module => {
+        const { defineCustomElements } = module;
+        defineCustomElements(window);
+      });
+    });
+  }, []);
 
   return (
     <>
       <div className="mapDiv" ref={mapDiv}></div>
-      <div className="infoDiv">
+      
+      {/* Add HomePanel component */}
+      <HomePanel 
+        isOpen={homePanelOpen} 
+        onClose={() => setHomePanelOpen(false)} 
+      />
+      
+      {/* Logo with Beta Badge */}
+      <div className={`logo-container ${homePanelOpen ? 'shifted-for-panel' : ''}`}>
+        <div className="logo">UCCRN Atlas</div>
+        <div className="beta-badge">Beta</div>
+      </div>
+      
+      {/* View mode toggle button */}
+      <div className={`infoDiv ${homePanelOpen ? 'shifted-for-panel' : ''}`}>
         <button 
           className="esri-component esri-widget--button esri-widget esri-interactive"
           onClick={switchView}
         >
-          <span className={`esri-icon ${viewMode === "3D" ? "esri-icon-globe" : "esri-icon-map"}`}></span> {viewMode}
+          {viewMode}
         </button>
       </div>
     </>

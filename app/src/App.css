@@ -25,6 +25,10 @@ body, html {
   position: absolute;
   top: 15px;
   left: 60px;
+  right: 15px;
+  transition: right 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index: 1;
+  will-change: right; /* Performance optimization */
 }
 
 .infoDiv button {
@@ -116,4 +120,154 @@ body, html {
 
 .message-area.info {
   color: #0079c1;
+}
+
+/* Logo and Beta badge styling */
+.logo-container {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 99;
+  background-color: rgba(255, 255, 255);
+  padding: 8px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: right 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index: 1;
+  will-change: right; /* Performance optimization */
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.beta-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #006aff;
+  color: white;
+  font-size: 8px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+/* Make sure the logo is positioned above the map widgets */
+.esri-ui-top-right {
+  margin-top: 50px !important;
+  right: 15px;
+  transition: right 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  position: absolute;
+  z-index: 1;
+  will-change: right; /* Performance optimization */
+}
+
+.esri-ui-bottom-right {
+  right: 15px;
+  transition: right 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  position: absolute;
+  z-index: 1;
+  will-change: right; /* Performance optimization */
+}
+
+.esri-ui-top-right.shifted-for-panel,
+.esri-ui-bottom-right.shifted-for-panel {
+  right: 375px; /* Panel width (360px) + some padding */
+}
+
+.logo-container.shifted-for-panel {
+  right: 375px;
+}
+
+.infoDiv.shifted-for-panel {
+  right: 375px;
+}
+
+/* Update panel width to be consistent */
+.side-panel {
+  width: 360px;
+}
+
+/* Add styles for Calcite icon in buttons */
+calcite-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add specific styles for the home panel toggle button to ensure proper icon alignment */
+[data-button-id="home-panel-toggle"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix for home button with calcite icon */
+[data-button-id="home-panel-toggle"] {
+  box-shadow: none !important;
+  transform: none !important;
+  transition: background-color 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+[data-button-id="home-panel-toggle"]:hover {
+  background-color: #f0f0f0;
+}
+
+[data-button-id="home-panel-toggle"] calcite-icon {
+  --calcite-ui-icon-color: #6e6e6e;
+  --calcite-ui-brand: #2a6ebb;
+  display: block;
+}
+
+/* Reset any transforms or effects that might be causing the 3D appearance */
+.esri-widget--button {
+  transform: none !important;
+  transition: background-color 0.15s ease-in-out !important;
+}
+
+/* Remove any potential box shadows on the button */
+.esri-component {
+  box-shadow: none !important;
+}
+
+/* Style for Add Layer button with icon */
+#add-layer-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+#add-layer-button calcite-icon {
+  --calcite-ui-icon-color: currentColor;
+  margin-right: 2px;
+}
+
+/* Style for Add Layer button with ESRI icon */
+#add-layer-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+#add-layer-button .esri-icon {
+  font-size: 14px;
+  line-height: 1;
+  margin-right: 2px;
 }
