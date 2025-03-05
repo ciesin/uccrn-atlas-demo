@@ -11,11 +11,15 @@ import esriConfig from "@arcgis/core/config";
 import { HomePanel } from "./components";
 import { createLayers } from "./components/Layers";
 import Search from "@arcgis/core/widgets/Search";
+import Layer from "@arcgis/core/layers/Layer";
 
 import "./App.css";
 
 // Set API key
-esriConfig.apiKey = import.meta.env.ESRI_API_KEY;
+esriConfig.apiKey = `AAPT85fOqywZsicJupSmVSCGrgYGMP3Yw8crXD2Odql8Wk2M3ReBV5LvMvqPnW7PQMux1xGwnOpA40i49BolRLp95phjqWFEMYWH9WnWcvVwtbN3toQEq1_H3IHmBCzOQaL2OzV28ZFfQB4xNfvi4TNK4qrdXvLMA3acGkCOszZ-KVyo8-H6aLK1ry0Xm_ffXdvsah3PKZzUPH-TxQ03sBCQP08AEAhSX2IQ_3vRBWDi6D4.AT2_hW1toEBQ`
+
+// Add this for authentication
+esriConfig.request.useIdentity = false; // Prevent identity manager from prompting for credentials
 
 function App() {
   const mapDiv = useRef(null);
@@ -83,35 +87,81 @@ function App() {
 
       // Initialize widgets and load layers when the view is ready
       appConfig.current.mapView.when(async () => {
-        setupWidgets();
-        setupTimeSlider(map);
-        setupLayerWatchers(map);
-        setupHomePanelToggle();
-
-        // Create loading indicator
-        const loadingDiv = document.createElement("div");
-        loadingDiv.className = "service-loading-indicator";
-        loadingDiv.innerHTML = "Loading climate layers...";
-        appConfig.current.activeView.ui.add(loadingDiv, "bottom-left");
-
         try {
-          // Load all layers
-          const layers = await createLayers();
-          map.addMany(layers);
+          // Create loading indicator
+          const loadingDiv = document.createElement("div");
+          loadingDiv.className = "service-loading-indicator";
+          loadingDiv.innerHTML = "Loading map layers...";
+          appConfig.current.activeView.ui.add(loadingDiv, "bottom-left");
+
+          // First, load the UCCRN feature service by portal ID
+          console.log("Loading UCCRN feature service...");
+          const uccrnService = await Layer.fromPortalItem({
+            portalItem: {
+              id: "9b96670f10bb4f2085cf7cf70ad96b3d"  // UCCRN portal ID
+            }
+          });
+
+          // Store the service for later use
+          appConfig.current.uccrnService = uccrnService;
+
+          // Add the service to the map
+          map.add(uccrnService);
+
+          // If the service doesn't have layers immediately, wait for them to load
+          if (!uccrnService.layers || uccrnService.layers.length === 0) {
+            console.log("Waiting for UCCRN service layers to load...");
+            
+            // Wait for the layer to be fully loaded
+            await uccrnService.when();
+            
+            console.log("UCCRN service fully loaded");
+          }
+
+          // Debug the loaded layers
+          if (uccrnService.layers) {
+            console.log("UCCRN layers count:", uccrnService.layers.length);
+            uccrnService.layers.forEach((layer, i) => {
+              console.log(`Layer ${i}: ${layer.title || 'unnamed'} (${layer.id})`);
+              
+              // Configure each layer
+              layer.outFields = ["*"];
+              layer.popupEnabled = true;
+            });
+          } else {
+            console.warn("No layers found in UCCRN service after loading");
+          }
+
+          // Load other layers
+          const otherLayers = await createLayers();
+          map.addMany(otherLayers);
+
+          // Set up widgets and UI components
+          setupWidgets();
+          setupTimeSlider(map);
+          setupLayerWatchers(map);
+          setupHomePanelToggle();
 
           // Update loading indicator
-          loadingDiv.innerHTML = "Climate layers loaded successfully";
+          loadingDiv.innerHTML = "Map layers loaded successfully";
           loadingDiv.className = "service-loading-indicator success";
+
+          // Remove the loading indicator after a few seconds
+          setTimeout(() => {
+            appConfig.current.activeView.ui.remove(loadingDiv);
+          }, 3000);
         } catch (error) {
           console.error("Error loading layers:", error);
-          loadingDiv.innerHTML = "Error loading climate layers";
+          const loadingDiv = document.createElement("div");
           loadingDiv.className = "service-loading-indicator error";
+          loadingDiv.innerHTML = "Error loading map layers";
+          appConfig.current.activeView.ui.add(loadingDiv, "bottom-left");
+          
+          // Remove after a few seconds
+          setTimeout(() => {
+            appConfig.current.activeView.ui.remove(loadingDiv);
+          }, 3000);
         }
-
-        // Remove the loading indicator after a few seconds
-        setTimeout(() => {
-          appConfig.current.activeView.ui.remove(loadingDiv);
-        }, 3000);
       });
 
       // Cleanup
@@ -128,34 +178,28 @@ function App() {
 
   // Handle UI repositioning when the panel opens/closes
   useEffect(() => {
-    // Function to adjust UI elements when panel opens/closes
-    const adjustUI = () => {
-      const topRightUI = document.querySelector('.esri-ui-top-right');
-      const bottomRightUI = document.querySelector('.esri-ui-bottom-right');
-      
-      if (topRightUI) {
-        if (homePanelOpen) {
-          topRightUI.classList.add('shifted-for-panel');
-        } else {
-          topRightUI.classList.remove('shifted-for-panel');
-        }
-      }
-      
-      if (bottomRightUI) {
-        if (homePanelOpen) {
-          bottomRightUI.classList.add('shifted-for-panel');
-        } else {
-          bottomRightUI.classList.remove('shifted-for-panel');
-        }
-      }
-    };
-    
-    // Call the function whenever the panel state changes
-    adjustUI();
+    // Use the reusable function to adjust UI
+    adjustUIForPanel(homePanelOpen);
     
     // Small timeout to ensure UI is updated after DOM changes
-    const timeoutId = setTimeout(adjustUI, 50);
-    return () => clearTimeout(timeoutId);
+    const timeoutId = setTimeout(() => adjustUIForPanel(homePanelOpen), 50);
+    
+    // Add resize listener to handle orientation changes
+    const handleResize = () => {
+      adjustUIForPanel(homePanelOpen);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [homePanelOpen]);
+
+  // Add useEffect to log state changes
+  useEffect(() => {
+    console.log("Home panel state changed:", homePanelOpen);
   }, [homePanelOpen]);
 
   // Create a MapView or SceneView
@@ -210,17 +254,13 @@ function App() {
     const latitude = appConfig.current.activeView.center.latitude;
     const scaleConversionFactor = Math.cos((latitude * Math.PI) / 180.0);
 
-    // Clear existing TimeSlider before changing views
-    if (appConfig.current.timeSlider) {
-      try {
-        appConfig.current.activeView.ui.remove(appConfig.current.timeSlider);
-      } catch (e) {
-        console.log("Error removing time slider during view switch", e);
-      }
-    }
-
     // Remove the reference to the container for the previous view
     appConfig.current.activeView.container = null;
+
+    // If panel is open, temporarily close it
+    if (panelWasOpen) {
+      setHomePanelOpen(false);
+    }
 
     // Switch views
     if (is3D) {
@@ -241,15 +281,31 @@ function App() {
 
     // Setup widgets for the new active view
     appConfig.current.activeView.when(() => {
-      setupWidgets();
-      setupTimeSlider(); // This will create a new time slider for the current view
-      setupLayerWatchers(appConfig.current.activeView.map);
-      setupHomePanelToggle();
-      
-      // Restore panel state if it was open
-      if (panelWasOpen) {
-        setTimeout(() => setHomePanelOpen(true), 100);
+      // Make sure the UCCRN service reference is updated for the new view
+      if (appConfig.current.uccrnService) {
+        // Find the service in the new view
+        const serviceInNewView = appConfig.current.activeView.map.allLayers.find(
+          layer => layer.id === appConfig.current.uccrnService.id
+        );
+        
+        if (serviceInNewView) {
+          appConfig.current.uccrnService = serviceInNewView;
+        }
       }
+      
+      setupWidgets();
+      setupTimeSlider();
+      setupLayerWatchers(appConfig.current.activeView.map);
+      
+      // Set up the home panel toggle with a small delay
+      setTimeout(() => {
+        setupHomePanelToggle();
+        
+        // Restore panel state if it was open
+        if (panelWasOpen) {
+          setHomePanelOpen(true);
+        }
+      }, 200);
     });
   }
 
@@ -372,202 +428,256 @@ function App() {
     console.log("Widgets setup complete for", appConfig.current.activeView.type, "view");
   }
 
-  // Setup search widget
-  function setupSearch() {
-    // Clear existing search widget if it exists
-    if (appConfig.current.search) {
-      try {
-        appConfig.current.search.destroy();
-      } catch (e) {
-        console.log("Error destroying search widget", e);
-      }
-      appConfig.current.search = null;
-    }
-    
-    // Clear existing search expand widget if it exists
-    if (appConfig.current.searchExpand) {
-      try {
-        appConfig.current.activeView.ui.remove(appConfig.current.searchExpand);
-      } catch (e) {
-        console.log("Error removing search expand widget", e);
-      }
-      appConfig.current.searchExpand = null;
-    }
+  // Update setupSearch function to fix authentication issues
 
-    // Find the UCCRN Case Studies layer
-    const uccrnLayer = appConfig.current.activeView.map.allLayers.find(
-      layer => layer.title === "Case Studies"
-    );
-    
-    console.log("Case Studies layer found:", uccrnLayer ? "yes" : "no");
-
-    // Create base search sources
-    const sources = [
-      {
-        name: "ArcGIS World Geocoding",
-        placeholder: "Find location...",
-        apiKey: esriConfig.apiKey,
-        singleLineFieldName: "SingleLine",
-        url: "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer",
-        locationType: "street-address",
-        outFields: ["Addr_type", "Match_addr", "StAddr", "City"],
-        maxResults: 3,
-        exactMatch: false
-      }
-    ];
-
-    // Add Case Studies layer as a search source if found
-    if (uccrnLayer) {
-      // Force outFields to include all fields for searching
-      if (uccrnLayer.outFields) {
-        if (!uccrnLayer.outFields.includes("*")) {
-          uccrnLayer.outFields = ["*"];
-        }
-      } else {
-        uccrnLayer.outFields = ["*"];
-      }
-      
-      sources.push({
-        name: "UCCRN Case Studies",
-        placeholder: "Search case studies...",
-        layer: uccrnLayer,
-        searchFields: ["Name", "City", "Country"], // Add the field names you want to search
-        displayField: "Name", // Field to display in results
-        exactMatch: false,
-        outFields: ["*"],
-        maxResults: 6,
-        maxSuggestions: 6,
-        suggestionsEnabled: true,
-        minSuggestCharacters: 2,
-        popupEnabled: true,
-        resultGraphicEnabled: true,
-        // Custom result template function to format search results
-        resultTemplate: {
-          title: "{Name}",
-          content: "{City}, {Country}"
-        }
-      });
-      
-      console.log("Added Case Studies layer as search source");
-    } else {
-      console.log("Case Studies layer not found for search source");
+function setupSearch() {
+  // Clear existing search widget if it exists
+  if (appConfig.current.search) {
+    try {
+      appConfig.current.search.destroy();
+    } catch (e) {
+      console.log("Error destroying search widget", e);
     }
+    appConfig.current.search = null;
+  }
+  
+  // Clear existing search expand widget if it exists
+  if (appConfig.current.searchExpand) {
+    try {
+      appConfig.current.activeView.ui.remove(appConfig.current.searchExpand);
+    } catch (e) {
+      console.log("Error removing search expand widget", e);
+    }
+    appConfig.current.searchExpand = null;
+  }
+
+  // Create sources array
+  const sources = [];
+  
+  // Add ArcGIS World Geocoding source
+  sources.push({
+    name: "ArcGIS World Geocoding",
+    placeholder: "Find location...",
+    apiKey: esriConfig.apiKey,
+    singleLineFieldName: "SingleLine",
+    url: "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+    locationType: "street-address",
+    outFields: ["Addr_type", "Match_addr", "StAddr", "City"],
+    maxResults: 3,
+    exactMatch: false,
+    authMode: "anonymous"
+  });
+  
+  // Check all layers in the map for UCCRN layers
+  const mapLayers = appConfig.current.activeView.map.allLayers;
+  console.log("Total map layers:", mapLayers.length);
+  
+  // Find case locations layer
+  const caseLayer = mapLayers.find(layer => 
+    layer.title === "case_locations" || 
+    layer.title === "Case Studies" ||
+    (layer.sublayers && layer.sublayers.some(sl => sl.title === "case_locations" || sl.title === "Case Studies"))
+  );
+  
+  // Find city boundaries layer
+  const boundaryLayer = mapLayers.find(layer => 
+    layer.title === "city_boundaries" || 
+    layer.title === "City Boundaries" ||
+    (layer.sublayers && layer.sublayers.some(sl => sl.title === "city_boundaries" || sl.title === "City Boundaries"))
+  );
+  
+  console.log("Found case layer:", caseLayer ? caseLayer.title : "not found");
+  console.log("Found boundary layer:", boundaryLayer ? boundaryLayer.title : "not found");
+  
+  // Add case layer to sources if found
+  if (caseLayer) {
+    // Ensure the layer is ready for search
+    caseLayer.outFields = ["*"];
     
-    // Add coordinates search capability
     sources.push({
-      name: "Coordinates",
-      placeholder: "Enter coordinates (lat, lon)",
-      getResults: (params) => {
-        // Parse coordinates from string like "40.7128, -74.0060"
-        const input = params.suggestTerm;
-        const match = input.match(/^\s*(-?\d+(\.\d+)?)\s*[,\s]\s*(-?\d+(\.\d+)?)\s*$/);
+      layer: caseLayer,
+      searchFields: ["Name", "City", "Country"],
+      displayField: "Name",
+      exactMatch: false,
+      outFields: ["*"],
+      name: "UCCRN Case Studies",
+      placeholder: "Search case studies",
+      resultTemplate: {
+        title: "{Name}",
+        content: "{City}, {Country}"
+      },
+      authMode: "anonymous"
+    });
+  }
+  
+  // Add boundary layer to sources if found
+  if (boundaryLayer) {
+    // Ensure the layer is ready for search
+    boundaryLayer.outFields = ["*"];
+    
+    sources.push({
+      layer: boundaryLayer,
+      searchFields: ["City_Name", "Country"],
+      displayField: "City_Name",
+      exactMatch: false,
+      outFields: ["*"],
+      name: "UCCRN City Boundaries",
+      placeholder: "Search city boundaries",
+      resultTemplate: {
+        title: "{City_Name}",
+        content: "{Country}"
+      },
+      authMode: "anonymous"
+    });
+  }
+  
+  // Add coordinates search
+  sources.push({
+    name: "Coordinates",
+    placeholder: "Enter coordinates (lat, lon)",
+    getResults: (params) => {
+      if (!params || !params.suggestTerm) {
+        return { results: [], suggestResults: [] };
+      }
+      
+      const input = params.suggestTerm.trim();
+      if (!input) {
+        return { results: [], suggestResults: [] };
+      }
+      
+      const match = input.match(/^\s*(-?\d+(\.\d+)?)\s*[,\s]\s*(-?\d+(\.\d+)?)\s*$/);
+      
+      if (match) {
+        const latitude = parseFloat(match[1]);
+        const longitude = parseFloat(match[3]);
         
-        if (match) {
-          const latitude = parseFloat(match[1]);
-          const longitude = parseFloat(match[3]);
+        if (!isNaN(latitude) && !isNaN(longitude) && 
+            latitude >= -90 && latitude <= 90 && 
+            longitude >= -180 && longitude <= 180) {
           
-          // Check if the coordinates are valid
-          if (!isNaN(latitude) && !isNaN(longitude) && 
-              latitude >= -90 && latitude <= 90 && 
-              longitude >= -180 && longitude <= 180) {
-            
-            // Return a search result
-            return {
-              results: [{
-                feature: {
-                  geometry: {
-                    type: "point",
-                    x: longitude,
-                    y: latitude,
-                    spatialReference: {
-                      wkid: 4326
-                    }
-                  },
-                  attributes: {
-                    ObjectID: 1,
-                    Name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-                    Type: "Coordinates"
-                  }
-                },
-                name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-                extent: {
-                  xmin: longitude - 0.05,
-                  ymin: latitude - 0.05,
-                  xmax: longitude + 0.05,
-                  ymax: latitude + 0.05,
+          return {
+            results: [{
+              feature: {
+                geometry: {
+                  type: "point",
+                  x: longitude,
+                  y: latitude,
                   spatialReference: {
                     wkid: 4326
                   }
+                },
+                attributes: {
+                  ObjectID: 1,
+                  Name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+                  Type: "Coordinates"
                 }
-              }],
-              suggestResults: []
-            };
-          }
+              },
+              name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+              extent: {
+                xmin: longitude - 0.05,
+                ymin: latitude - 0.05,
+                xmax: longitude + 0.05,
+                ymax: latitude + 0.05,
+                spatialReference: {
+                  wkid: 4326
+                }
+              }
+            }],
+            suggestResults: []
+          };
         }
-        
-        return { results: [], suggestResults: [] };
       }
-    });
-
-    // Create a new search widget with the sources
-    appConfig.current.search = new Search({
-      view: appConfig.current.activeView,
-      locationEnabled: true,
-      searchAllEnabled: true,
-      includeDefaultSources: false,
-      sources: sources,
-      popupEnabled: true,
-      popupOpenOnSelect: true,
-      resultGraphicEnabled: true,
-      // Configure to use the view's popup configuration
-      popupTemplate: {
-        // Title and content will be overridden by results
-        overwriteActions: true,
-        // Use docking configuration from view
-        dockEnabled: true,
-        dockOptions: {
-          position: "bottom-left",
-          buttonEnabled: false
-        }
-      },
-      goToOverride: (view, options) => {
-        // Adjust scale based on source type
-        if (options.source && options.source.name === "UCCRN Case Studies") {
-          options.target.scale = 50000; // Closer zoom for case studies
+      
+      return { results: [], suggestResults: [] };
+    },
+    getSuggestions: (params) => {
+      if (!params || !params.suggestTerm) {
+        return { suggestions: [] };
+      }
+      
+      const input = params.suggestTerm.trim();
+      if (!input) {
+        return { suggestions: [] };
+      }
+      
+      if (/^-?\d+(\.\d+)?[,\s]\s*-?\d+(\.\d+)?$/.test(input) || 
+          /^-?\d+(\.\d+)?$/.test(input)) {
+        return {
+          suggestions: [{
+            text: input,
+            key: "coordinates",
+            sourceIndex: params.sourceIndex
+          }]
+        };
+      }
+      
+      return { suggestions: [] };
+    }
+  });
+  
+  // Create the search widget
+  appConfig.current.search = new Search({
+    view: appConfig.current.activeView,
+    locationEnabled: true,
+    searchAllEnabled: true,
+    includeDefaultSources: false,
+    sources: sources,
+    popupEnabled: true,
+    popupOpenOnSelect: true,
+    resultGraphicEnabled: true,
+    authMode: "anonymous",
+    apiKey: esriConfig.apiKey,
+    popupTemplate: {
+      overwriteActions: true,
+      dockEnabled: true,
+      dockOptions: {
+        position: "bottom-left",
+        buttonEnabled: false
+      }
+    },
+    goToOverride: (view, options) => {
+      if (options.source) {
+        if (options.source.name === "UCCRN Case Studies") {
+          options.target.scale = 50000;
+        } else if (options.source.name === "UCCRN City Boundaries") {
+          options.target.scale = 150000;
+        } else if (options.source.name === "Coordinates") {
+          options.target.scale = 75000;
         } else {
-          options.target.scale = 100000; // Default zoom level
+          options.target.scale = 100000;
         }
-        
-        return view.goTo(options.target).then(() => {
-          // Force popup to be docked after navigation
-          if (view.popup && view.popup.visible) {
-            view.popup.dockEnabled = true;
-            view.popup.dock({
-              position: "bottom-left"
-            });
-          }
-        });
       }
-    });
+      
+      return view.goTo(options.target).then(() => {
+        if (view.popup && view.popup.visible) {
+          view.popup.dockEnabled = true;
+          view.popup.dock({
+            position: "bottom-left"
+          });
+        }
+      });
+    }
+  });
 
-    // Create an expand widget for the search
-    appConfig.current.searchExpand = new Expand({
-      view: appConfig.current.activeView,
-      content: appConfig.current.search,
-      expandIconClass: "esri-icon-search",
-      expandTooltip: "Search locations and case studies",
-      collapseTooltip: "Close search",
-      group: "top-right"
-    });
+  // Create an expand widget for the search
+  appConfig.current.searchExpand = new Expand({
+    view: appConfig.current.activeView,
+    content: appConfig.current.search,
+    expandIconClass: "esri-icon-search",
+    expandTooltip: "Search",
+    collapseTooltip: "Close search",
+    group: "top-right",
+    expanded: false
+  });
 
-    // Add it to the top-right UI
-    appConfig.current.activeView.ui.add(appConfig.current.searchExpand, {
-      position: "top-right",
-      index: 0 // Add at the beginning so it appears first
-    });
-    
-    console.log("Search widget setup complete");
-  }
+  // Add it to the top-right UI
+  appConfig.current.activeView.ui.add(appConfig.current.searchExpand, {
+    position: "top-right",
+    index: 0
+  });
+  
+  console.log("Search widget setup complete with sources:", sources.length);
+}
 
   // Setup time slider widget that appears only for time-enabled layers
   function setupTimeSlider() {
@@ -693,12 +803,7 @@ function App() {
       appConfig.current.timeSlider.visible = false;
     }
   }
-
-  // Add a function to toggle the home panel
-  function toggleHomePanel() {
-    setHomePanelOpen(!homePanelOpen);
-  }
-
+  
   // Update the setupHomePanelToggle function
   function setupHomePanelToggle() {
     // Remove any existing home panel buttons first to avoid duplicates
@@ -711,6 +816,7 @@ function App() {
     button.title = "Home Panel";
     button.setAttribute("aria-label", "Toggle Home Panel");
     button.setAttribute("data-button-id", "home-panel-toggle");
+    button.id = "home-panel-toggle-btn";
     
     // Explicitly set inline styles to avoid box-shadow
     button.style.boxShadow = 'none';
@@ -727,11 +833,17 @@ function App() {
     // Add the icon to the button
     button.appendChild(iconElement);
     
-    // Add click event listener
-    button.addEventListener("click", toggleHomePanel);
+    // Add click event listener - use an inline function that directly calls setHomePanelOpen 
+    // instead of using the toggleHomePanel function
+    button.addEventListener("click", () => {
+      console.log("Home panel button clicked, setting to:", !homePanelOpen);
+      setHomePanelOpen(prevState => !prevState);
+    });
     
     // Add the button to the view
     appConfig.current.activeView.ui.add(button, "top-right");
+    
+    console.log("Home panel toggle set up for", appConfig.current.activeView.type, "view");
   }
 
   // Make sure we initialize the Calcite components
@@ -745,6 +857,61 @@ function App() {
       });
     });
   }, []);
+
+  // Add this function for handling UI adjustments when panel state changes
+  function adjustUIForPanel(isPanelOpen) {
+    const isMobile = window.innerWidth <= 768;
+    const topRightUI = document.querySelector('.esri-ui-top-right');
+    const bottomRightUI = document.querySelector('.esri-ui-bottom-right');
+    const bottomLeftUI = document.querySelector('.esri-ui-bottom-left');
+    
+    // On desktop, shift UI to accommodate panel
+    if (!isMobile) {
+      if (topRightUI) {
+        if (isPanelOpen) {
+          topRightUI.classList.add('shifted-for-panel');
+        } else {
+          topRightUI.classList.remove('shifted-for-panel');
+        }
+      }
+      
+      if (bottomRightUI) {
+        if (isPanelOpen) {
+          bottomRightUI.classList.add('shifted-for-panel');
+        } else {
+          bottomRightUI.classList.remove('shifted-for-panel');
+        }
+      }
+    }
+    // On mobile with bottom panel, adjust bottom components upward
+    else {
+      if (bottomLeftUI && isPanelOpen) {
+        bottomLeftUI.classList.add('shifted-up-for-panel');
+      } else if (bottomLeftUI) {
+        bottomLeftUI.classList.remove('shifted-up-for-panel');
+      }
+    }
+    
+    // Also update the logo and toggle button positions
+    const logo = document.querySelector('.logo-container');
+    const infoDiv = document.querySelector('.infoDiv');
+    
+    if (logo) {
+      if (isPanelOpen) {
+        logo.classList.add('shifted-for-panel');
+      } else {
+        logo.classList.remove('shifted-for-panel');
+      }
+    }
+    
+    if (infoDiv) {
+      if (isPanelOpen) {
+        infoDiv.classList.add('shifted-for-panel');
+      } else {
+        infoDiv.classList.remove('shifted-for-panel');
+      }
+    }
+  }
 
   return (
     <>

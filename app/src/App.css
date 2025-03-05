@@ -238,6 +238,7 @@ calcite-icon {
 .esri-widget--button {
   transform: none !important;
   transition: background-color 0.15s ease-in-out !important;
+  pointer-events: auto !important;
 }
 
 /* Remove any potential box shadows on the button */
@@ -271,3 +272,25 @@ calcite-icon {
   line-height: 1;
   margin-right: 2px;
 }
+
+/* Make sure the home toggle button is visible and interactive */
+#home-panel-toggle {
+  z-index: 10;
+  cursor: pointer;
+  background-color: white;
+}
+
+#home-panel-toggle:hover {
+  background-color: #f0f0f0;
+}
+
+/* Make sure any UI components stay clickable */
+.esri-ui-top-left,
+.esri-ui-top-right,
+.esri-ui-bottom-left,
+.esri-ui-bottom-right {
+  z-index: 2;
+  pointer-events: auto !important;
+}
+
+/* Fix for any potential issues with the panel toggle */

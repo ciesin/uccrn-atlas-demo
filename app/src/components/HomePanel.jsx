@@ -93,7 +93,7 @@ const HomePanel = ({ isOpen, onClose }) => {
   return (
     <div className={`side-panel home-panel ${isOpen ? 'open' : ''}`}>
       <div className="panel-header">
-        <h2>UCCRN Climate Atlas</h2>
+        <h2>Welcome to UCCRN City Solutions Case Study Atlas</h2>
         <button className="close-btn" onClick={onClose} aria-label="Close panel">×</button>
       </div>
       
