@@ -8,21 +8,14 @@ import Legend from "@arcgis/core/widgets/Legend";
 import Expand from "@arcgis/core/widgets/Expand";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
 import esriConfig from "@arcgis/core/config";
-import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
-import MapImageLayer from "@arcgis/core/layers/MapImageLayer";
-import TileLayer from "@arcgis/core/layers/TileLayer";
-import ImageryLayer from "@arcgis/core/layers/ImageryLayer";
-import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
-import WMSLayer from "@arcgis/core/layers/WMSLayer";
-import WMTSLayer from "@arcgis/core/layers/WMTSLayer";
-import Portal from "@arcgis/core/portal/Portal";
-import PortalItem from "@arcgis/core/portal/PortalItem";
 import { HomePanel } from "./components";
+import { createLayers } from "./components/Layers";
+import Search from "@arcgis/core/widgets/Search";
 
 import "./App.css";
 
 // Set API key
-esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY || "";
+esriConfig.apiKey = import.meta.env.ESRI_API_KEY;
 
 function App() {
   const mapDiv = useRef(null);
@@ -31,29 +24,39 @@ function App() {
     sceneView: null,
     activeView: null,
     container: null,
-    basemapGalleryExpand: null,
-    layerListExpand: null,
-    legendExpand: null,
-    timeSlider: null,
     basemapGallery: null,
     layerList: null,
     legend: null,
-    addLayerExpand: null
+    timeSlider: null,
+    search: null, // Add this line for the search widget
+    basemapGalleryExpand: null,
+    layerListExpand: null,
+    legendExpand: null,
+    addLayerExpand: null,
+    searchExpand: null // Add this line for the search expand widget
   });
+  
   const [viewMode, setViewMode] = useState("3D");
   const [homePanelOpen, setHomePanelOpen] = useState(false);
 
+  // Initialize map and views
   useEffect(() => {
     if (mapDiv.current) {
       // Save reference to the container
       appConfig.current.container = mapDiv.current;
 
-      // Create map with dark gray basemap
+      // Create a map with dark gray basemap
       const map = new Map({
-        basemap: "dark-gray"
+        basemap: "dark-gray",
+        // Add attribution
+        portalItem: {
+          attribution: "CIESIN, Columbia University"
+        },
+        // Configure default popup template
+        defaultPopupTemplateEnabled: true
       });
 
-      // Initial view parameters with panning enabled
+      // Initial view parameters
       const initialViewParams = {
         container: mapDiv.current,
         map: map,
@@ -78,13 +81,37 @@ function App() {
       initialViewParams.container = null;
       appConfig.current.sceneView = createView(initialViewParams, "3d");
 
-      // Initialize widgets when the view is ready
-      appConfig.current.mapView.when(() => {
+      // Initialize widgets and load layers when the view is ready
+      appConfig.current.mapView.when(async () => {
         setupWidgets();
         setupTimeSlider(map);
         setupLayerWatchers(map);
-        setupAddLayerWidget();
         setupHomePanelToggle();
+
+        // Create loading indicator
+        const loadingDiv = document.createElement("div");
+        loadingDiv.className = "service-loading-indicator";
+        loadingDiv.innerHTML = "Loading climate layers...";
+        appConfig.current.activeView.ui.add(loadingDiv, "bottom-left");
+
+        try {
+          // Load all layers
+          const layers = await createLayers();
+          map.addMany(layers);
+
+          // Update loading indicator
+          loadingDiv.innerHTML = "Climate layers loaded successfully";
+          loadingDiv.className = "service-loading-indicator success";
+        } catch (error) {
+          console.error("Error loading layers:", error);
+          loadingDiv.innerHTML = "Error loading climate layers";
+          loadingDiv.className = "service-loading-indicator error";
+        }
+
+        // Remove the loading indicator after a few seconds
+        setTimeout(() => {
+          appConfig.current.activeView.ui.remove(loadingDiv);
+        }, 3000);
       });
 
       // Cleanup
@@ -99,7 +126,7 @@ function App() {
     }
   }, []);
 
-  // Add this useEffect to handle UI repositioning when the panel opens/closes
+  // Handle UI repositioning when the panel opens/closes
   useEffect(() => {
     // Function to adjust UI elements when panel opens/closes
     const adjustUI = () => {
@@ -131,293 +158,99 @@ function App() {
     return () => clearTimeout(timeoutId);
   }, [homePanelOpen]);
 
-  // Setup the "Add Layer" widget
-  function setupAddLayerWidget() {
-    // Create the Add Layer widget content
-    const addLayerDiv = document.createElement("div");
-    addLayerDiv.className = "esri-widget add-layer-widget";
-    addLayerDiv.innerHTML = `
-      <h3>Add Layer</h3>
-      <div class="input-group">
-        <label for="layer-type">Layer Type:</label>
-        <select id="layer-type" class="esri-input">
-          <option value="featureLayer">Feature Layer</option>
-          <option value="mapImageLayer">Map Image Layer</option>
-          <option value="tileLayer">Tiled Layer</option>
-          <option value="imageryLayer">Imagery Layer</option>
-          <option value="vectorTileLayer">Vector Tile Layer</option>
-          <option value="wmsLayer">WMS Layer</option>
-          <option value="wmtsLayer">WMTS Layer</option>
-          <option value="portalItem">Portal Item</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label for="layer-url">URL or Item ID:</label>
-        <input type="text" id="layer-url" class="esri-input" placeholder="Enter URL or Item ID">
-      </div>
-      <div class="button-group">
-        <button id="add-layer-button" class="esri-button">
-          Add Layer
-        </button>
-      </div>
-      <div id="layer-add-message" class="message-area"></div>
-    `;
-
-    // Rest of the function remains unchanged
-    const addLayerExpand = new Expand({
-      view: appConfig.current.activeView,
-      content: addLayerDiv,
-      expandIconClass: "esri-icon-add-layer",
-      expandTooltip: "Add Layer",
-      collapseTooltip: "Close Add Layer",
-      expanded: false,
-      group: "top-left"
-    });
-
-    // Add the widget to the view
-    appConfig.current.activeView.ui.add(addLayerExpand, "top-left");
-    appConfig.current.addLayerExpand = addLayerExpand;
-
-    // Rest of the function remains unchanged
-    setTimeout(() => {
-      const layerTypeSelect = document.getElementById("layer-type");
-      const layerUrlInput = document.getElementById("layer-url");
-      const addLayerButton = document.getElementById("add-layer-button");
-      const messageArea = document.getElementById("layer-add-message");
-
-      if (layerTypeSelect && layerUrlInput && addLayerButton) {
-        layerTypeSelect.addEventListener("change", (e) => {
-          const type = e.target.value;
-          if (type === "portalItem") {
-            layerUrlInput.placeholder = "Enter Item ID";
-          } else {
-            layerUrlInput.placeholder = "Enter URL";
-          }
-        });
-
-        addLayerButton.addEventListener("click", () => {
-          const type = layerTypeSelect.value;
-          const url = layerUrlInput.value.trim();
-          
-          if (!url) {
-            messageArea.textContent = "Please enter a valid URL or Item ID";
-            messageArea.className = "message-area error";
-            return;
-          }
-
-          messageArea.textContent = "Adding layer...";
-          messageArea.className = "message-area info";
-          
-          addLayerToMap(type, url)
-            .then(() => {
-              messageArea.textContent = "Layer added successfully!";
-              messageArea.className = "message-area success";
-              layerUrlInput.value = "";
-            })
-            .catch((error) => {
-              console.error("Error adding layer:", error);
-              messageArea.textContent = `Error: ${error.message || "Failed to add layer"}`;
-              messageArea.className = "message-area error";
-            });
-        });
-      }
-    }, 100);
-  }
-
-  // Add a layer to the map based on type and URL
-  async function addLayerToMap(layerType, url) {
-    let layer;
+  // Create a MapView or SceneView
+  function createView(params, type) {
+    let view;
     
-    try {
-      switch (layerType) {
-        case "featureLayer":
-          layer = new FeatureLayer({
-            url: url,
-            outFields: ["*"]
-          });
-          break;
-          
-        case "mapImageLayer":
-          layer = new MapImageLayer({
-            url: url
-          });
-          break;
-          
-        case "tileLayer":
-          layer = new TileLayer({
-            url: url
-          });
-          break;
-          
-        case "imageryLayer":
-          layer = new ImageryLayer({
-            url: url
-          });
-          break;
-          
-        case "vectorTileLayer":
-          layer = new VectorTileLayer({
-            url: url
-          });
-          break;
-          
-        case "wmsLayer":
-          layer = new WMSLayer({
-            url: url,
-            sublayers: [
-              {
-                name: "all", // Will attempt to load all available layers
-                visible: true
-              }
-            ]
-          });
-          break;
-          
-        case "wmtsLayer":
-          layer = new WMTSLayer({
-            url: url
-          });
-          break;
-          
-        case "portalItem":
-          {
-            const portalItem = new PortalItem({
-              id: url
-            });
-            
-            // Wait for the portal item to load
-            await portalItem.load();
-            
-            // Create the appropriate layer type based on the portal item
-            switch (portalItem.type) {
-              case "Feature Service":
-                layer = new FeatureLayer({
-                  portalItem: portalItem
-                });
-                break;
-              case "Map Service":
-                layer = new MapImageLayer({
-                  portalItem: portalItem
-                });
-                break;
-              case "Image Service":
-                layer = new ImageryLayer({
-                  portalItem: portalItem
-                });
-                break;
-              case "Tile Layer":
-              case "Tile Service":
-                layer = new TileLayer({
-                  portalItem: portalItem
-                });
-                break;
-              case "Vector Tile Service":
-                layer = new VectorTileLayer({
-                  portalItem: portalItem
-                });
-                break;
-              case "WMS":
-                layer = new WMSLayer({
-                  portalItem: portalItem
-                });
-                break;
-              case "WMTS":
-                layer = new WMTSLayer({
-                  portalItem: portalItem
-                });
-                break;
-              default:
-                throw new Error(`Unsupported portal item type: ${portalItem.type}`);
-            }
-          }
-          break;
-          
-        default:
-          throw new Error(`Unsupported layer type: ${layerType}`);
+    // Set transparent highlight options
+    const transparentHighlightOptions = {
+      color: [0, 0, 0, 0],
+      haloOpacity: 0,
+      fillOpacity: 0
+    };
+    
+    // Configure popup for docking
+    const popupOptions = {
+      dockEnabled: true,
+      dockOptions: {
+        // Dock to bottom-left
+        position: "bottom-left",
+        // Keep it docked - don't allow undocking
+        buttonEnabled: false,
+        // Set the size of the docked popup
+        breakpoint: false
       }
-      
-      // Wait for the layer to load
-      await layer.load();
-      
-      // Add the layer to the map
-      appConfig.current.activeView.map.add(layer);
-      
-      // Zoom to the layer extent if available
-      if (layer.fullExtent) {
-        appConfig.current.activeView.goTo(layer.fullExtent);
-      }
-      
-      return layer;
-    } catch (error) {
-      console.error("Error adding layer:", error);
-      throw error;
+    };
+    
+    // Add popup configuration to params
+    params.popup = popupOptions;
+    
+    if (type === "2d") {
+      // Add highlightOptions to params
+      params.highlightOptions = transparentHighlightOptions;
+      view = new MapView(params);
+      view.constraints.rotationEnabled = false;
+    } 
+    else if (type === "3d") {
+      // Add highlightOptions to params
+      params.highlightOptions = transparentHighlightOptions;
+      view = new SceneView(params);
     }
+    
+    return view;
   }
 
-  // Setup time slider widget that appears only for time-enabled layers
-  function setupTimeSlider() {
-    // Create the TimeSlider widget
-    const timeSlider = new TimeSlider({
-      view: appConfig.current.activeView,
-      mode: "instant", 
-      layout: "compact",
-      visible: false 
-    });
+  // Switch between 2D and 3D views
+  function switchView() {
+    const is3D = appConfig.current.activeView.type === "3d";
+    const activeViewpoint = appConfig.current.activeView.viewpoint.clone();
+    const panelWasOpen = homePanelOpen;
 
-    // Add the TimeSlider widget to the bottom left of the view
-    appConfig.current.activeView.ui.add(timeSlider, "bottom-left");
-    appConfig.current.timeSlider = timeSlider;
-  }
+    // Compute scale conversion factor
+    const latitude = appConfig.current.activeView.center.latitude;
+    const scaleConversionFactor = Math.cos((latitude * Math.PI) / 180.0);
 
-  // Set up watchers to monitor for time-enabled layers
-  function setupLayerWatchers(map) {
-    // Watch for changes to map.layers collection
-    map.layers.on("after-changes", updateTimeSlider);
-
-    // Initial check for time-enabled layers
-    updateTimeSlider();
-  }
-
-  // Update the time slider based on time-enabled layers
-  function updateTimeSlider() {
-    // Get the time extent from all time-enabled layers
-    const timeEnabledLayers = appConfig.current.activeView.map.layers.filter(layer => {
-      return layer.timeInfo && layer.visible;
-    });
-
-    if (timeEnabledLayers.length > 0) {
-      // Show the time slider
-      if (appConfig.current.timeSlider) {
-        appConfig.current.timeSlider.visible = true;
-
-        // Get the full time extent from all time-enabled layers
-        let fullTimeExtent = null;
-        timeEnabledLayers.forEach(layer => {
-          if (layer.timeInfo && layer.timeInfo.fullTimeExtent) {
-            if (!fullTimeExtent) {
-              fullTimeExtent = layer.timeInfo.fullTimeExtent.clone();
-            } else {
-              fullTimeExtent.expand(layer.timeInfo.fullTimeExtent);
-            }
-          }
-        });
-
-        if (fullTimeExtent) {
-          appConfig.current.timeSlider.fullTimeExtent = fullTimeExtent;
-          appConfig.current.timeSlider.stops = {
-            interval: {
-              value: 1,
-              unit: "months"
-            }
-          };
-        }
+    // Clear existing TimeSlider before changing views
+    if (appConfig.current.timeSlider) {
+      try {
+        appConfig.current.activeView.ui.remove(appConfig.current.timeSlider);
+      } catch (e) {
+        console.log("Error removing time slider during view switch", e);
       }
+    }
+
+    // Remove the reference to the container for the previous view
+    appConfig.current.activeView.container = null;
+
+    // Switch views
+    if (is3D) {
+      // 3D to 2D
+      activeViewpoint.scale /= scaleConversionFactor;
+      appConfig.current.mapView.viewpoint = activeViewpoint;
+      appConfig.current.mapView.container = appConfig.current.container;
+      appConfig.current.activeView = appConfig.current.mapView;
+      setViewMode("3D"); // Button shows what you'll switch TO
     } else {
-      // Hide the time slider if no time-enabled layers
-      if (appConfig.current.timeSlider) {
-        appConfig.current.timeSlider.visible = false;
-      }
+      // 2D to 3D
+      activeViewpoint.scale *= scaleConversionFactor;
+      appConfig.current.sceneView.viewpoint = activeViewpoint;
+      appConfig.current.sceneView.container = appConfig.current.container;
+      appConfig.current.activeView = appConfig.current.sceneView;
+      setViewMode("2D"); // Button shows what you'll switch TO
     }
+
+    // Setup widgets for the new active view
+    appConfig.current.activeView.when(() => {
+      setupWidgets();
+      setupTimeSlider(); // This will create a new time slider for the current view
+      setupLayerWatchers(appConfig.current.activeView.map);
+      setupHomePanelToggle();
+      
+      // Restore panel state if it was open
+      if (panelWasOpen) {
+        setTimeout(() => setHomePanelOpen(true), 100);
+      }
+    });
   }
 
   // Setup widgets for the active view
@@ -533,60 +366,332 @@ function App() {
       appConfig.current.activeView.ui.add(appConfig.current.addLayerExpand, "top-left");
     }
 
+    // Setup search widget
+    setupSearch();
+
     console.log("Widgets setup complete for", appConfig.current.activeView.type, "view");
   }
 
-  // Helper function to create either a 2D or 3D view
-  function createView(params, type) {
-    if (type === "2d") {
-      return new MapView(params);
-    } else {
-      return new SceneView(params);
+  // Setup search widget
+  function setupSearch() {
+    // Clear existing search widget if it exists
+    if (appConfig.current.search) {
+      try {
+        appConfig.current.search.destroy();
+      } catch (e) {
+        console.log("Error destroying search widget", e);
+      }
+      appConfig.current.search = null;
     }
-  }
-
-  // Switch the view between 2D and 3D
-  function switchView() {
-    const is3D = appConfig.current.activeView.type === "3d";
-    const activeViewpoint = appConfig.current.activeView.viewpoint.clone();
-    const panelWasOpen = homePanelOpen; // Store current panel state
-
-    // Compute scale conversion factor
-    const latitude = appConfig.current.activeView.center.latitude;
-    const scaleConversionFactor = Math.cos((latitude * Math.PI) / 180.0);
-
-    // Remove the reference to the container for the previous view
-    appConfig.current.activeView.container = null;
-
-    if (is3D) {
-      // Switch to 2D
-      activeViewpoint.scale /= scaleConversionFactor;
-      appConfig.current.mapView.viewpoint = activeViewpoint;
-      appConfig.current.mapView.container = appConfig.current.container;
-      appConfig.current.activeView = appConfig.current.mapView;
-      setViewMode("3D"); // Button shows what you'll switch TO
-    } else {
-      // Switch to 3D
-      activeViewpoint.scale *= scaleConversionFactor;
-      appConfig.current.sceneView.viewpoint = activeViewpoint;
-      appConfig.current.sceneView.container = appConfig.current.container;
-      appConfig.current.activeView = appConfig.current.sceneView;
-      setViewMode("2D"); // Button shows what you'll switch TO
+    
+    // Clear existing search expand widget if it exists
+    if (appConfig.current.searchExpand) {
+      try {
+        appConfig.current.activeView.ui.remove(appConfig.current.searchExpand);
+      } catch (e) {
+        console.log("Error removing search expand widget", e);
+      }
+      appConfig.current.searchExpand = null;
     }
 
-    // Setup widgets for the new active view
-    appConfig.current.activeView.when(() => {
-      setupWidgets();
-      setupTimeSlider(appConfig.current.activeView.map);
-      setupLayerWatchers(appConfig.current.activeView.map);
-      setupAddLayerWidget();
-      setupHomePanelToggle();
+    // Find the UCCRN Case Studies layer
+    const uccrnLayer = appConfig.current.activeView.map.allLayers.find(
+      layer => layer.title === "Case Studies"
+    );
+    
+    console.log("Case Studies layer found:", uccrnLayer ? "yes" : "no");
+
+    // Create base search sources
+    const sources = [
+      {
+        name: "ArcGIS World Geocoding",
+        placeholder: "Find location...",
+        apiKey: esriConfig.apiKey,
+        singleLineFieldName: "SingleLine",
+        url: "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+        locationType: "street-address",
+        outFields: ["Addr_type", "Match_addr", "StAddr", "City"],
+        maxResults: 3,
+        exactMatch: false
+      }
+    ];
+
+    // Add Case Studies layer as a search source if found
+    if (uccrnLayer) {
+      // Force outFields to include all fields for searching
+      if (uccrnLayer.outFields) {
+        if (!uccrnLayer.outFields.includes("*")) {
+          uccrnLayer.outFields = ["*"];
+        }
+      } else {
+        uccrnLayer.outFields = ["*"];
+      }
       
-      // Restore panel state if it was open
-      if (panelWasOpen) {
-        setTimeout(() => setHomePanelOpen(true), 100);
+      sources.push({
+        name: "UCCRN Case Studies",
+        placeholder: "Search case studies...",
+        layer: uccrnLayer,
+        searchFields: ["Name", "City", "Country"], // Add the field names you want to search
+        displayField: "Name", // Field to display in results
+        exactMatch: false,
+        outFields: ["*"],
+        maxResults: 6,
+        maxSuggestions: 6,
+        suggestionsEnabled: true,
+        minSuggestCharacters: 2,
+        popupEnabled: true,
+        resultGraphicEnabled: true,
+        // Custom result template function to format search results
+        resultTemplate: {
+          title: "{Name}",
+          content: "{City}, {Country}"
+        }
+      });
+      
+      console.log("Added Case Studies layer as search source");
+    } else {
+      console.log("Case Studies layer not found for search source");
+    }
+    
+    // Add coordinates search capability
+    sources.push({
+      name: "Coordinates",
+      placeholder: "Enter coordinates (lat, lon)",
+      getResults: (params) => {
+        // Parse coordinates from string like "40.7128, -74.0060"
+        const input = params.suggestTerm;
+        const match = input.match(/^\s*(-?\d+(\.\d+)?)\s*[,\s]\s*(-?\d+(\.\d+)?)\s*$/);
+        
+        if (match) {
+          const latitude = parseFloat(match[1]);
+          const longitude = parseFloat(match[3]);
+          
+          // Check if the coordinates are valid
+          if (!isNaN(latitude) && !isNaN(longitude) && 
+              latitude >= -90 && latitude <= 90 && 
+              longitude >= -180 && longitude <= 180) {
+            
+            // Return a search result
+            return {
+              results: [{
+                feature: {
+                  geometry: {
+                    type: "point",
+                    x: longitude,
+                    y: latitude,
+                    spatialReference: {
+                      wkid: 4326
+                    }
+                  },
+                  attributes: {
+                    ObjectID: 1,
+                    Name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+                    Type: "Coordinates"
+                  }
+                },
+                name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+                extent: {
+                  xmin: longitude - 0.05,
+                  ymin: latitude - 0.05,
+                  xmax: longitude + 0.05,
+                  ymax: latitude + 0.05,
+                  spatialReference: {
+                    wkid: 4326
+                  }
+                }
+              }],
+              suggestResults: []
+            };
+          }
+        }
+        
+        return { results: [], suggestResults: [] };
       }
     });
+
+    // Create a new search widget with the sources
+    appConfig.current.search = new Search({
+      view: appConfig.current.activeView,
+      locationEnabled: true,
+      searchAllEnabled: true,
+      includeDefaultSources: false,
+      sources: sources,
+      popupEnabled: true,
+      popupOpenOnSelect: true,
+      resultGraphicEnabled: true,
+      // Configure to use the view's popup configuration
+      popupTemplate: {
+        // Title and content will be overridden by results
+        overwriteActions: true,
+        // Use docking configuration from view
+        dockEnabled: true,
+        dockOptions: {
+          position: "bottom-left",
+          buttonEnabled: false
+        }
+      },
+      goToOverride: (view, options) => {
+        // Adjust scale based on source type
+        if (options.source && options.source.name === "UCCRN Case Studies") {
+          options.target.scale = 50000; // Closer zoom for case studies
+        } else {
+          options.target.scale = 100000; // Default zoom level
+        }
+        
+        return view.goTo(options.target).then(() => {
+          // Force popup to be docked after navigation
+          if (view.popup && view.popup.visible) {
+            view.popup.dockEnabled = true;
+            view.popup.dock({
+              position: "bottom-left"
+            });
+          }
+        });
+      }
+    });
+
+    // Create an expand widget for the search
+    appConfig.current.searchExpand = new Expand({
+      view: appConfig.current.activeView,
+      content: appConfig.current.search,
+      expandIconClass: "esri-icon-search",
+      expandTooltip: "Search locations and case studies",
+      collapseTooltip: "Close search",
+      group: "top-right"
+    });
+
+    // Add it to the top-right UI
+    appConfig.current.activeView.ui.add(appConfig.current.searchExpand, {
+      position: "top-right",
+      index: 0 // Add at the beginning so it appears first
+    });
+    
+    console.log("Search widget setup complete");
+  }
+
+  // Setup time slider widget that appears only for time-enabled layers
+  function setupTimeSlider() {
+    // First, remove any existing time sliders from the view
+    const timeSliderNodes = document.querySelectorAll('.esri-time-slider');
+    timeSliderNodes.forEach(node => {
+      // If the node is in the UI, try to find its UI position and remove it
+      const parent = node.parentElement;
+      if (parent && parent.classList.contains('esri-ui-bottom-left')) {
+        try {
+          appConfig.current.activeView.ui.remove(parent);
+        } catch (e) {
+          // In case there's an error removing from UI
+          console.log("Error removing time slider from UI", e);
+        }
+      }
+    });
+    
+    // Clear the existing time slider reference if it exists
+    if (appConfig.current.timeSlider) {
+      try {
+        appConfig.current.timeSlider.destroy();
+      } catch (e) {
+        // In case the destroy fails
+        console.log("Error destroying time slider", e);
+      }
+      appConfig.current.timeSlider = null;
+    }
+
+    // Create a new TimeSlider
+    const timeSlider = new TimeSlider({
+      view: appConfig.current.activeView,
+      mode: "instant",
+      layout: "compact",
+      visible: false
+    });
+
+    // Add it to the UI
+    appConfig.current.activeView.ui.add(timeSlider, "bottom-left");
+    appConfig.current.timeSlider = timeSlider;
+    
+    console.log("Time slider setup complete");
+  }
+
+  // Set up watchers to monitor for time-enabled layers
+  function setupLayerWatchers(map) {
+    // Watch for changes to map.layers collection
+    map.layers.on("after-changes", () => updateTimeSlider(map));
+    
+    // Watch for visibility changes on all current and future layers
+    map.layers.forEach(layer => {
+      watchLayerVisibility(layer, map);
+    });
+    
+    // Watch for new layers being added
+    map.layers.on("after-add", event => {
+      watchLayerVisibility(event.item, map);
+    });
+    
+    // Initial check for time-enabled layers
+    updateTimeSlider(map);
+  }
+
+  // Set up visibility watcher for a single layer
+  function watchLayerVisibility(layer, map) {
+    layer.watch("visible", () => {
+      updateTimeSlider(map);
+    });
+  }
+
+  // Update the time slider based on time-enabled layers
+  function updateTimeSlider(map) {
+    if (!appConfig.current.timeSlider) return;
+    
+    // Get all visible time-enabled layers
+    const timeEnabledLayers = map.layers.filter(layer => {
+      // ImageryLayer with useViewTime or layers with timeInfo
+      return layer.visible && (
+        (layer.type === "imagery" && layer.useViewTime) ||
+        (layer.timeInfo && layer.timeInfo.fullTimeExtent)
+      );
+    });
+    
+    console.log(`Found ${timeEnabledLayers.length} visible time-enabled layers`);
+    
+    if (timeEnabledLayers.length > 0) {
+      // Show the time slider
+      appConfig.current.timeSlider.visible = true;
+      
+      // Get the full time extent from all time-enabled layers
+      let fullTimeExtent = null;
+      
+      timeEnabledLayers.forEach(layer => {
+        if (layer.timeInfo && layer.timeInfo.fullTimeExtent) {
+          if (!fullTimeExtent) {
+            fullTimeExtent = layer.timeInfo.fullTimeExtent.clone();
+          } else {
+            // Expand the existing time extent to include this layer's time extent
+            if (layer.timeInfo.fullTimeExtent.start < fullTimeExtent.start) {
+              fullTimeExtent.start = layer.timeInfo.fullTimeExtent.start;
+            }
+            if (layer.timeInfo.fullTimeExtent.end > fullTimeExtent.end) {
+              fullTimeExtent.end = layer.timeInfo.fullTimeExtent.end;
+            }
+          }
+        }
+      });
+      
+      if (fullTimeExtent) {
+        appConfig.current.timeSlider.fullTimeExtent = fullTimeExtent;
+        appConfig.current.timeSlider.stops = {
+          interval: {
+            value: 1,
+            unit: "months"
+          }
+        };
+        
+        // Set to most recent date
+        appConfig.current.timeSlider.values = [fullTimeExtent.end];
+      }
+    } else {
+      // Hide the time slider if no visible time-enabled layers
+      appConfig.current.timeSlider.visible = false;
+    }
   }
 
   // Add a function to toggle the home panel

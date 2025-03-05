@@ -1,0 +1,144 @@
+/* Base styles for the panel */
+.home-panel {
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Desktop styles - right side panel */
+.home-panel {
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 350px;
+  max-width: 90vw;
+}
+
+/* Mobile styles - bottom panel */
+.home-panel.mobile {
+  top: auto;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  max-height: 80vh;
+  border-radius: 15px 15px 0 0;
+}
+
+/* Header styling */
+.home-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.home-panel-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.close-button:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+/* Content styling */
+.home-panel-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-panel-content h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #2a6ebb;
+  font-size: 16px;
+}
+
+.home-panel-content h3:first-child {
+  margin-top: 0;
+}
+
+.home-panel-content p,
+.home-panel-content li {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.home-panel-content ol {
+  padding-left: 20px;
+}
+
+/* Attribution section */
+.attribution {
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 12px;
+  color: #777;
+  text-align: center;
+}
+
+.attribution p {
+  margin: 5px 0;
+  font-size: 12px;
+  color: #777;
+}
+
+/* Mobile-specific touch interactions */
+@media (max-width: 768px) {
+  .home-panel-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  
+  /* Add a drag handle for mobile */
+  .home-panel-header::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* Extra padding for the drag handle */
+  .home-panel-header {
+    padding-top: 20px;
+  }
+}
