@@ -11,7 +11,6 @@ import esriConfig from "@arcgis/core/config";
 import { HomePanel } from "./components";
 import { createLayers } from "./components/Layers";
 import Search from "@arcgis/core/widgets/Search";
-import Layer from "@arcgis/core/layers/Layer";
 
 import "./App.css";
 
@@ -93,44 +92,6 @@ function App() {
           loadingDiv.className = "service-loading-indicator";
           loadingDiv.innerHTML = "Loading map layers...";
           appConfig.current.activeView.ui.add(loadingDiv, "bottom-left");
-
-          // First, load the UCCRN feature service by portal ID
-          console.log("Loading UCCRN feature service...");
-          const uccrnService = await Layer.fromPortalItem({
-            portalItem: {
-              id: "9b96670f10bb4f2085cf7cf70ad96b3d"  // UCCRN portal ID
-            }
-          });
-
-          // Store the service for later use
-          appConfig.current.uccrnService = uccrnService;
-
-          // Add the service to the map
-          map.add(uccrnService);
-
-          // If the service doesn't have layers immediately, wait for them to load
-          if (!uccrnService.layers || uccrnService.layers.length === 0) {
-            console.log("Waiting for UCCRN service layers to load...");
-            
-            // Wait for the layer to be fully loaded
-            await uccrnService.when();
-            
-            console.log("UCCRN service fully loaded");
-          }
-
-          // Debug the loaded layers
-          if (uccrnService.layers) {
-            console.log("UCCRN layers count:", uccrnService.layers.length);
-            uccrnService.layers.forEach((layer, i) => {
-              console.log(`Layer ${i}: ${layer.title || 'unnamed'} (${layer.id})`);
-              
-              // Configure each layer
-              layer.outFields = ["*"];
-              layer.popupEnabled = true;
-            });
-          } else {
-            console.warn("No layers found in UCCRN service after loading");
-          }
 
           // Load other layers
           const otherLayers = await createLayers();
@@ -281,18 +242,6 @@ function App() {
 
     // Setup widgets for the new active view
     appConfig.current.activeView.when(() => {
-      // Make sure the UCCRN service reference is updated for the new view
-      if (appConfig.current.uccrnService) {
-        // Find the service in the new view
-        const serviceInNewView = appConfig.current.activeView.map.allLayers.find(
-          layer => layer.id === appConfig.current.uccrnService.id
-        );
-        
-        if (serviceInNewView) {
-          appConfig.current.uccrnService = serviceInNewView;
-        }
-      }
-      
       setupWidgets();
       setupTimeSlider();
       setupLayerWatchers(appConfig.current.activeView.map);
@@ -496,7 +445,7 @@ function setupSearch() {
     
     sources.push({
       layer: caseLayer,
-      searchFields: ["Name", "City", "Country"],
+      searchFields: ["Name", "City", "Country", "Climate Intervention"],
       displayField: "Name",
       exactMatch: false,
       outFields: ["*"],
@@ -531,90 +480,6 @@ function setupSearch() {
     });
   }
   
-  // Add coordinates search
-  sources.push({
-    name: "Coordinates",
-    placeholder: "Enter coordinates (lat, lon)",
-    getResults: (params) => {
-      if (!params || !params.suggestTerm) {
-        return { results: [], suggestResults: [] };
-      }
-      
-      const input = params.suggestTerm.trim();
-      if (!input) {
-        return { results: [], suggestResults: [] };
-      }
-      
-      const match = input.match(/^\s*(-?\d+(\.\d+)?)\s*[,\s]\s*(-?\d+(\.\d+)?)\s*$/);
-      
-      if (match) {
-        const latitude = parseFloat(match[1]);
-        const longitude = parseFloat(match[3]);
-        
-        if (!isNaN(latitude) && !isNaN(longitude) && 
-            latitude >= -90 && latitude <= 90 && 
-            longitude >= -180 && longitude <= 180) {
-          
-          return {
-            results: [{
-              feature: {
-                geometry: {
-                  type: "point",
-                  x: longitude,
-                  y: latitude,
-                  spatialReference: {
-                    wkid: 4326
-                  }
-                },
-                attributes: {
-                  ObjectID: 1,
-                  Name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-                  Type: "Coordinates"
-                }
-              },
-              name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-              extent: {
-                xmin: longitude - 0.05,
-                ymin: latitude - 0.05,
-                xmax: longitude + 0.05,
-                ymax: latitude + 0.05,
-                spatialReference: {
-                  wkid: 4326
-                }
-              }
-            }],
-            suggestResults: []
-          };
-        }
-      }
-      
-      return { results: [], suggestResults: [] };
-    },
-    getSuggestions: (params) => {
-      if (!params || !params.suggestTerm) {
-        return { suggestions: [] };
-      }
-      
-      const input = params.suggestTerm.trim();
-      if (!input) {
-        return { suggestions: [] };
-      }
-      
-      if (/^-?\d+(\.\d+)?[,\s]\s*-?\d+(\.\d+)?$/.test(input) || 
-          /^-?\d+(\.\d+)?$/.test(input)) {
-        return {
-          suggestions: [{
-            text: input,
-            key: "coordinates",
-            sourceIndex: params.sourceIndex
-          }]
-        };
-      }
-      
-      return { suggestions: [] };
-    }
-  });
-  
   // Create the search widget
   appConfig.current.search = new Search({
     view: appConfig.current.activeView,
@@ -641,8 +506,6 @@ function setupSearch() {
           options.target.scale = 50000;
         } else if (options.source.name === "UCCRN City Boundaries") {
           options.target.scale = 150000;
-        } else if (options.source.name === "Coordinates") {
-          options.target.scale = 75000;
         } else {
           options.target.scale = 100000;
         }
