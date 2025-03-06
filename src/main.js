@@ -313,6 +313,22 @@ Layer.fromPortalItem({
   });
 });
 
+// Add portal layer for uccrn base layer
+Layer.fromPortalItem({
+  portalItem: {
+    id: "a3108e4f40434380b21fcd0fc80c01fc"
+  }
+}).then((layer) => {
+  layer.visible = true;
+  map.add(layer);
+
+  // Add layer to layer list
+  layerList.operationalItems.add({
+    layer: layer,
+    title: "UCCRN Atlas Cities"
+  });
+});
+
 // Setup portal and group query
 const portal = new Portal();
 portal.load().then(() => {
