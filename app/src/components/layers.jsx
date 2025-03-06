@@ -116,3 +116,20 @@ export const createLayers = async () => {
   
   return layers;
 };
+
+export const getCityNames = async (uccrnBaseLayer) => {
+  try {
+    const query = uccrnBaseLayer.createQuery();
+    query.returnDistinctValues = true;
+    query.outFields = ["City"];
+    query.where = "City IS NOT NULL";
+
+    const results = await uccrnBaseLayer.queryFeatures(query);
+    const cityNames = results.features.map(feature => feature.attributes.City);
+
+    return cityNames.sort();
+  } catch (error) {
+    console.error("Error loading city names:", error);
+    return [];
+  }
+};

@@ -93,13 +93,20 @@ const HomePanel = ({ isOpen, onClose }) => {
   return (
     <div className={`side-panel home-panel ${isOpen ? 'open' : ''}`}>
       <div className="panel-header">
-        <h2>Welcome to UCCRN City Solutions Case Study Atlas</h2>
-        <button className="close-btn" onClick={onClose} aria-label="Close panel">×</button>
+        <h2>City Solutions Case Study Atlas</h2>
+        <button 
+          className="close-btn" 
+          onClick={onClose} 
+          aria-label="Close panel"
+          style={{ borderRadius: '50%' }} // Ensure the highlight is a circle
+        >
+          ×
+        </button>
       </div>
       
       <div className="panel-content">
         <section className="panel-section">
-          <h3>Welcome to the Climate Atlas</h3>
+          <h3>Welcome to UCCRN City Solutions Case Study Atlas</h3>
           <p>
             The Urban Climate Change Research Network (UCCRN) Climate Atlas is an interactive 
             platform for exploring climate data and projections for cities around the world.
@@ -136,40 +143,6 @@ const HomePanel = ({ isOpen, onClose }) => {
             </li>
           </ul>
         </section>
-
-        <section className="panel-section">
-          <h3>Featured Cities</h3>
-          <div className="featured-cities">
-            <button className="city-button" onClick={() => console.log("Navigate to New York")}>
-              New York
-            </button>
-            <button className="city-button" onClick={() => console.log("Navigate to London")}>
-              London
-            </button>
-            <button className="city-button" onClick={() => console.log("Navigate to Tokyo")}>
-              Tokyo
-            </button>
-            <button className="city-button" onClick={() => console.log("Navigate to Paris")}>
-              Paris
-            </button>
-            <button className="city-button" onClick={() => console.log("Navigate to Shanghai")}>
-              Shanghai
-            </button>
-            <button className="city-button" onClick={() => console.log("Navigate to São Paulo")}>
-              São Paulo
-            </button>
-          </div>
-        </section>
-        
-        <section className="panel-section action-section">
-          <button className="primary-btn">Explore All Data</button>
-          <button className="secondary-btn">Learn More</button>
-        </section>
-        
-        <footer className="panel-footer">
-          <p>UCCRN Climate Atlas <span className="version">v1.0 Beta</span></p>
-          <p className="copyright">© 2025 Urban Climate Change Research Network</p>
-        </footer>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import Search from "@arcgis/core/widgets/Search";
 import "./App.css";
 
 // Set API key
-esriConfig.apiKey = `AAPT85fOqywZsicJupSmVSCGrgYGMP3Yw8crXD2Odql8Wk2M3ReBV5LvMvqPnW7PQMux1xGwnOpA40i49BolRLp95phjqWFEMYWH9WnWcvVwtbN3toQEq1_H3IHmBCzOQaL2OzV28ZFfQB4xNfvi4TNK4qrdXvLMA3acGkCOszZ-KVyo8-H6aLK1ry0Xm_ffXdvsah3PKZzUPH-TxQ03sBCQP08AEAhSX2IQ_3vRBWDi6D4.AT2_hW1toEBQ`
+esriConfig.apiKey = import.meta.env.VITE_REACT_APP_ESRI_API_KEY;
 
 // Add this for authentication
 esriConfig.request.useIdentity = false; // Prevent identity manager from prompting for credentials
@@ -68,11 +68,11 @@ function App() {
         constraints: {
           minZoom: 2,
           maxZoom: 22,
-          rotationEnabled: true,
+          rotationEnabled: false, // Disable rotation
           snapToZoom: false
         },
         ui: {
-          components: ["zoom", "compass", "navigation-toggle"]
+          components: ["zoom"] // Remove compass and navigation-toggle
         }
       };
 
