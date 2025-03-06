@@ -609,7 +609,7 @@ const zoom = new Zoom({
 // Create basemap gallery widget
 const basemapGallery = new BasemapGallery({
   view: activeView
-  source: [basemap, satelliteBasemap]
+  source: new Collection([basemap, satelliteBasemap])
 });
 
 // Create expand widget for basemap gallery
