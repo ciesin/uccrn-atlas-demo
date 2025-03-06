@@ -1,7 +1,7 @@
 import Expand from '@arcgis/core/widgets/Expand';
 import MapView from "@arcgis/core/views/MapView";
 import Map from "@arcgis/core/Map";
-//import Basemap from "@arcgis/core/Basemap";
+import Basemap from "@arcgis/core/Basemap";
 import ImageryLayer from "@arcgis/core/layers/ImageryLayer";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import LayerList from "@arcgis/core/widgets/LayerList";
@@ -28,7 +28,7 @@ import "./style.css";
 esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 
 // Create grey canvas basemap
-//const basemap = Basemap.fromId("dark-gray-vector");
+const basemap = Basemap.fromId("satellite");
 
 // Create variable definitions with multiple variables and dimensions
 const variableDefinitions = [
@@ -602,16 +602,16 @@ const zoom = new Zoom({
 });
 
 // Create basemap gallery widget
-const basemapGallery = new BasemapGallery({
-  view: activeView
-});
+//const basemapGallery = new BasemapGallery({
+  //view: activeView
+//});
 
 // Create expand widget for basemap gallery
-const bgExpand = new Expand({
-  view: activeView,
-  content: basemapGallery,
-  expanded: false
-});
+//const bgExpand = new Expand({
+ // view: activeView,
+  //content: basemapGallery,
+  //expanded: false
+//});
 
 // Create legend widget
 const legend = new Legend({
@@ -972,7 +972,7 @@ activeView.ui.add(searchExpand, "top-right");
 activeView.ui.add(logoDiv, "top-left");
 activeView.ui.add(featureExpand, "top-right");
 activeView.ui.move("zoom", "top-right");
-activeView.ui.add(bgExpand, "top-right");
+//activeView.ui.add(bgExpand, "top-right");
 activeView.ui.add(layerListExpand, "top-left");
 activeView.ui.add(timeSliderExpand, "bottom-left");
 activeView.ui.add(legendExpand, "bottom-right");
