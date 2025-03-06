@@ -316,7 +316,7 @@ Layer.fromPortalItem({
 // Add portal layer for uccrn base layer
 Layer.fromPortalItem({
   portalItem: {
-    id: "a3108e4f40434380b21fcd0fc80c01fc"
+    id: "9b96670f10bb4f2085cf7cf70ad96b3d"
   }
 }).then((layer) => {
   layer.visible = true;
