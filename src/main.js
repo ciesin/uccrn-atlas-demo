@@ -30,7 +30,7 @@ esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 // Create grey canvas basemap
 //const basemap = Basemap.fromId("dark-gray-vector");
 // Define the two allowed basemaps
-const Basemap = Basemap.fromId("dark-gray-vector");
+const basemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
 
 
