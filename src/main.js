@@ -35,7 +35,7 @@ const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
 const HumanGeographyDark = Basemap.fromId("HumanGeographyDark")
 const HumanGeography = Basemap.fromId("HumanGeography")
-v
+
 
 
 // Create variable definitions with multiple variables and dimensions
