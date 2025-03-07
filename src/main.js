@@ -34,19 +34,6 @@ esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
 
-// Load Human Geography Maps from Portal Items
-const humanGeoBasemap = new Basemap({
-  portalItem: {
-    id: "3a62040541b84f528da3ac7b80cf4a63" 
-  }
-});
-
-const humanGeoDarkBasemap = new Basemap({
-  portalItem: {
-    id: "1c365daf667c4801ba90870990c7ff35" 
-  }
-});
-
 
 
 // Create variable definitions with multiple variables and dimensions
@@ -626,9 +613,7 @@ const basemapGallery = new BasemapGallery({
   view: activeView,
     source: new Collection([
     darkGrayBasemap, 
-    satelliteBasemap, 
-    humanGeoBasemap, 
-    humanGeoDarkBasemap 
+    satelliteBasemap
   ])
 });
 
