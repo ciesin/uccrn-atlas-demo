@@ -33,6 +33,8 @@ esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 // Define the two allowed basemaps
 const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
+const humangeoBasemap = Basemap.fromId("human-geography");
+
 
 
 
@@ -613,9 +615,7 @@ const zoom = new Zoom({
 const basemapGallery = new BasemapGallery({
   view: activeView,
     source: new Collection([
-    darkGrayBasemap, 
-    satelliteBasemap
-  ])
+    darkGrayBasemap, satelliteBasemap, humangeoBasemap])
 });
 
 
