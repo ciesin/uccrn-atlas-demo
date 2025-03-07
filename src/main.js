@@ -20,6 +20,7 @@ import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer.js";
 import Layer from "@arcgis/core/layers/Layer";
 import Portal from "@arcgis/core/portal/Portal";
 import PortalGroup from "@arcgis/core/portal/PortalGroup";
+import Collection from "@arcgis/core/core/Collection";
 
 import "@esri/calcite-components/dist/calcite/calcite.css";
 import "./style.css";
@@ -30,9 +31,8 @@ esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 // Create grey canvas basemap
 //const basemap = Basemap.fromId("dark-gray-vector");
 // Define the two allowed basemaps
-const basemap = Basemap.fromId("dark-gray-vector");
+const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
-
 
 
 // Create variable definitions with multiple variables and dimensions
@@ -200,8 +200,9 @@ const kanoLayer = new GeoJSONLayer({
 });
 
 // Create map with basemap and layers
+// Create map with a default basemap
 const map = new Map({
-  basemap: basemap,
+  basemap: darkGrayBasemap,
   layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer, DurbanLayer, rioLayer, shanghaiLayer, naplesLayer, kanoLayer],
   // Add attribution
   portalItem: {
@@ -606,10 +607,10 @@ const zoom = new Zoom({
   view: activeView
 });
 
-// Create basemap gallery widget
+// Create BasemapGallery with only two basemaps
 const basemapGallery = new BasemapGallery({
-  view: activeView
-  source: new Collection([basemap, satelliteBasemap])
+  view: activeView,
+  source: new Collection([darkGrayBasemap, satelliteBasemap])
 });
 
 // Create expand widget for basemap gallery
