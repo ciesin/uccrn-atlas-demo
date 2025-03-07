@@ -33,8 +33,19 @@ esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 // Define the two allowed basemaps
 const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
-const humanGeoBasemap = Basemap.fromId("human-geography"); 
-const humanGeoDarkBasemap = Basemap.fromId("human-geography-dark");
+
+// Load Human Geography Maps from Portal Items
+const humanGeoBasemap = new Basemap({
+  portalItem: {
+    id: "3a62040541b84f528da3ac7b80cf4a63" 
+  }
+});
+
+const humanGeoDarkBasemap = new Basemap({
+  portalItem: {
+    id: "1c365daf667c4801ba90870990c7ff35" 
+  }
+});
 
 
 
@@ -613,7 +624,12 @@ const zoom = new Zoom({
 // Create BasemapGallery with only two basemaps
 const basemapGallery = new BasemapGallery({
   view: activeView,
-  source: new Collection([darkGrayBasemap, satelliteBasemap, humanGeoBasemap, humanGeoDarkBasemap]) 
+    source: new Collection([
+    darkGrayBasemap, 
+    satelliteBasemap, 
+    humanGeoBasemap, 
+    humanGeoDarkBasemap 
+  ])
 });
 
 
