@@ -34,13 +34,6 @@ esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
 const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
 const satelliteBasemap = Basemap.fromId("satellite");
 
-// Create the Human Geography Basemap using the PortalItem
-const humanGeographyBasemap = new Basemap({
-    portalItem: new PortalItem({
-        id: "3582b744bba84668b52a16b0b6942544"  // ID of the Human Geography Map
-    })
-});
-
 
 
 
@@ -620,7 +613,7 @@ const zoom = new Zoom({
 const basemapGallery = new BasemapGallery({
   view: activeView,
     source: new Collection([
-    darkGrayBasemap, satelliteBasemap, humanGeographyBasemap])
+    darkGrayBasemap, satelliteBasemap])
 });
 
 
