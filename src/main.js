@@ -11,6 +11,7 @@ import Basemap from "@arcgis/core/Basemap";
 
 import { getAllLayers } from "./utils/layers.js";
 import { plausible } from './utils/analytics.js';
+import { verifyPassword } from './utils/auth.js';
 
 import "@esri/calcite-components";
 import "./style.css";
@@ -396,7 +397,7 @@ document.querySelector("calcite-combobox")?.addEventListener("calciteComboboxCha
   }
 });
 
-// Create password overlay
+// Create password overlay with improved security
 const passwordOverlay = document.createElement('div');
 passwordOverlay.className = 'password-overlay';
 
@@ -411,6 +412,8 @@ const passwordInput = document.createElement('calcite-input');
 passwordInput.type = 'password';
 passwordInput.id = 'passwordInput';
 passwordInput.className = 'password-input';
+passwordInput.setAttribute('required', 'true');
+passwordInput.setAttribute('minlength', '8');
 
 const passwordButton = document.createElement('calcite-button');
 passwordButton.type = 'submit';
@@ -423,16 +426,35 @@ passwordForm.appendChild(passwordButton);
 passwordOverlay.appendChild(passwordForm);
 document.body.appendChild(passwordOverlay);
 
-// Handle password form submission
-passwordForm.addEventListener('submit', (event) => {
+// Handle password form submission with improved security
+passwordForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const password = passwordInput.value;
-  if (password === 'yourPassword') { // Replace 'yourPassword' with the actual password
-    passwordOverlay.style.display = 'none';
-  } else {
-    alert('Incorrect password. Please try again.');
+  
+  try {
+    if (await verifyPassword(password)) {
+      passwordOverlay.style.display = 'none';
+      // Store session token
+      sessionStorage.setItem('authenticated', 'true');
+    } else {
+      const errorMessage = document.createElement('calcite-notice');
+      errorMessage.setAttribute('kind', 'danger');
+      errorMessage.setAttribute('scale', 's');
+      errorMessage.innerHTML = '<div slot="message">Incorrect password. Please try again.</div>';
+      passwordForm.insertBefore(errorMessage, passwordButton);
+      
+      // Clear password field
+      passwordInput.value = '';
+    }
+  } catch (error) {
+    console.error('Authentication error:', error);
   }
 });
+
+// Check for existing session
+if (sessionStorage.getItem('authenticated') === 'true') {
+  passwordOverlay.style.display = 'none';
+}
 
 // Keep the view.when() callback as is
 view.when(() => {
