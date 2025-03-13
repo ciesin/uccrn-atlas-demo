@@ -6,6 +6,14 @@
     <link rel="icon" href="data:;base64,=" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UCCRN Atlas</title>
+    <!-- Add auth check before anything else loads -->
+    <script>
+        // Immediate auth check before any content loads
+        if (!sessionStorage.getItem("authState")) {
+            window.location.href = window.location.origin + "/uccrn-atlas-demo/src/auth/login.html";
+        }
+    </script>
+    <script src="./src/auth/auth-check.js"></script>
     <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.9.2/calcite.css" />
     <script type="module" src="https://js.arcgis.com/calcite-components/1.9.2/calcite.esm.js"></script>
     <script type="module">
@@ -17,6 +25,11 @@
     <div id="viewDiv"></div>
     <div id="rightWidgets" class="right-widgets"></div>
     
+    <div class="logo-container">
+        <span class="logo-text">UCCRN Atlas</span>
+        <span class="beta-badge">Beta</span>
+    </div>
+
     <calcite-sheet label="Atlas Options" position="inline-end" display-mode="dock" id="optionsSheet">
         <calcite-panel closable heading="City Solutions Case Study Atlas" id="optionsPanel">
             <calcite-block open heading="">
@@ -131,6 +144,7 @@
         </calcite-panel>
     </calcite-sheet>
     <calcite-button id="homeBtn" icon-start="home" label="Home"></calcite-button>
+    <calcite-button id="viewSwitchBtn" icon-start="globe" label="3D"></calcite-button>
     <script type="module" src="./src/main.js"></script>
 </body>
 </html>

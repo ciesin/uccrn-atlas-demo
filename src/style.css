@@ -101,32 +101,30 @@ calcite-sheet[open] ~ .esri-ui-top-right {
 }
 
 .logo-container {
-  display: flex;
-  align-items: center;
-  background: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255);
+    position: relative;  /* Added for absolute positioning of beta badge */
 }
 
 .logo-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: #2b2b2b;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #2b2b2b;
 }
 
 .beta-badge {
-  position: absolute;
-  top: -10px;
-  right: -5px;
-  background: #0080ff;
-  color: white;
-  padding: 1px 4px;
-  border-radius: 2px;
-  font-size: 10px;
-  font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    background-color: #006eec;
+    color: white;
+    border-radius: 3px;
 }
 
 /* Popup styles */
@@ -258,36 +256,105 @@ calcite-block[heading="Filter by Climate Intervention"] {
 #climate-intervention {
   width: 100%;
   --calcite-ui-brand: #007ac2;
+  --calcite-ui-border: #eee;
 }
 
-.password-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: white; /* Solid white background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+/* Remove bottom margin from Calcite buttons */
+calcite-button {
+  margin-bottom: 0 !important;
 }
 
-.password-form {
-  background: var(--calcite-ui-background); /* Calcite background color */
-  padding: 20px;
-  border-radius: var(--calcite-border-radius);
-  box-shadow: var(--calcite-shadow);
-  text-align: center;
+/* Ensure consistent spacing between buttons */
+#homeBtn,
+#viewSwitchBtn {
+  margin: 0;
 }
 
-.password-input {
-  margin-top: 10px;
-  width: 100%;
-  box-sizing: border-box;
+/* Login page styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--calcite-sans-family);
+    background-color: var(--calcite-ui-background);
+    color: var(--calcite-ui-text-1);
 }
 
-.password-button {
-  margin-top: 10px;
-  cursor: pointer;
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.login-card {
+    background-color: var(--calcite-ui-foreground-1);
+    border-radius: 8px;
+    box-shadow: var(--calcite-shadow-2);
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-title {
+    color: var(--calcite-ui-text-1);
+    margin: 0 0 1.5rem 0;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--calcite-ui-text-2);
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    box-sizing: border-box;  /* Add this to include padding in width calculation */
+    padding: 0.5rem;
+    border: 1px solid var(--calcite-ui-border-input);
+    border-radius: 4px;
+    background-color: var(--calcite-ui-foreground-1);
+    color: var(--calcite-ui-text-1);
+}
+
+.form-group input:focus {
+    outline: 2px solid var(--calcite-ui-brand);
+    outline-offset: -1px;
+}
+
+.error-message {
+    color: var(--calcite-ui-danger);
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--calcite-ui-brand);
+    color: var(--calcite-ui-foreground-1);
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: var(--calcite-ui-brand-hover);
+}
+
+button[type="submit"]:active {
+    background-color: var(--calcite-ui-brand-press);
 }

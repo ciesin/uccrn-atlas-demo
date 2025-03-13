@@ -1,6 +1,7 @@
 import Bookmarks from "@arcgis/core/widgets/Bookmarks";
 import Expand from "@arcgis/core/widgets/Expand";
 import MapView from "@arcgis/core/views/MapView";
+import SceneView from "@arcgis/core/views/SceneView"; // Add this line
 import WebMap from "@arcgis/core/WebMap";
 import Legend from "@arcgis/core/widgets/Legend";
 import Search from "@arcgis/core/widgets/Search";
@@ -11,7 +12,6 @@ import Basemap from "@arcgis/core/Basemap";
 
 import { getAllLayers } from "./utils/layers.js";
 import { plausible } from './utils/analytics.js';
-import { verifyPassword } from './utils/auth.js';
 
 import "@esri/calcite-components";
 import "./style.css";
@@ -23,34 +23,126 @@ const webmap = new WebMap({
   layers: getAllLayers()
 });
 
+// Define popup configuration before creating views
+const popupConfig = {
+  dockEnabled: true,
+  dockOptions: {
+    buttonEnabled: false,
+    breakpoint: false,
+    position: "bottom-left"
+  }
+};
+
+// Create MapView with popup config
 const view = new MapView({
   container: "viewDiv",
   map: webmap,
   center: [0, 0],
   zoom: 2,
   ui: {
-    components: ["zoom"] // Only keep zoom controls, removes attribution
-  }
+    components: ["zoom", "attribution"] // Only keep zoom controls, removes attribution
+  },
+  popup: popupConfig
 });
 
-// Create logo container
-const logoContainer = document.createElement('div');
-logoContainer.className = 'logo-container';
+// Add this after the view declaration but before other widget setup
 
-const logoText = document.createElement('span');
-logoText.className = 'logo-text';
-logoText.textContent = 'UCCRN Atlas';
+let activeView = view;
 
-const betaBadge = document.createElement('span');
-betaBadge.className = 'beta-badge';
-betaBadge.textContent = 'Beta';
+// Create container for views
+const container = document.getElementById("viewDiv");
 
-logoContainer.appendChild(logoText);
-logoContainer.appendChild(betaBadge);
+// Create SceneView with popup config
+const sceneView = new SceneView({
+  container: null,
+  map: webmap,
+  center: [0, 0],
+  zoom: 2,
+  ui: {
+    components: ["zoom", "attribution"]
+  },
+  popup: popupConfig
+});
+
+// Replace the button creation code with this
+const switchButton = document.getElementById("viewSwitchBtn");
+
+// Function to switch views
+const switchView = () => {
+  const is3D = activeView === view;
+  
+  // Store references to all UI widgets with their positions
+  const widgetPositions = [
+    { component: searchWidget, position: "top-right", index: 0 },
+    { component: llExpand, position: "top-right", index: 1 },
+    { component: legendExpand, position: "top-right", index: 2 },
+    { component: bgExpand, position: "top-right", index: 3 },
+    { component: timeSliderExpand, position: "top-right", index: 4 },
+    { component: document.querySelector('.logo-container'), position: "top-left", index: 0 },
+    { component: homeBtn, position: "top-right", index: 6 },
+    { component: switchButton, position: "top-right", index: 5 }
+  ];
+
+  // Safely close popup if it exists
+  if (activeView.popup?.visible) {
+    activeView.popup.visible = false;
+  }
+
+  // Remove widgets from current view
+  activeView.ui.empty();
+  
+  // Switch container and view
+  activeView.container = null;
+  
+  if (is3D) {
+    activeView = sceneView;
+    switchButton.label = "2D";
+    switchButton.iconStart = "map";
+  } else {
+    activeView = view;
+    switchButton.label = "3D";
+    switchButton.iconStart = "globe";
+  }
+  
+  // Set the new container
+  activeView.container = container;
+
+  // Update widget view references
+  [searchWidget, basemapGallery, legend, layerList, timeSlider].forEach(widget => {
+    if (widget) {
+      widget.view = activeView;
+    }
+  });
+
+  // Re-add widgets to new view
+  widgetPositions.forEach(widget => {
+    if (widget.component) {
+      activeView.ui.add({
+        component: widget.component,
+        position: widget.position,
+        index: widget.index
+      });
+    }
+  });
+
+  // Set zoom controls
+  activeView.ui.components = ["zoom", "attribution"];
+
+  // Ensure popup configuration is set
+  if (activeView.popup) {
+    activeView.popup.set(popupConfig);
+  }
+};
+
+// Add click event listener
+switchButton.addEventListener("click", switchView);
+
+// Add the switch button to the initial view
+view.ui.add(switchButton, "top-right");
 
 // Add logo container to the view
 view.ui.add({
-  component: logoContainer,
+  component: document.querySelector('.logo-container'),
   position: "top-left",
   index: 0
 });
@@ -183,12 +275,6 @@ const popupTemplate = {
       const objectId = feature.graphic.attributes.OBJECTID;
       const serviceUrl = "https://services2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/uccrn_base_layer/FeatureServer/0";
       
-      // Log the feature data
-      console.log('Feature Data:', {
-        objectId: objectId,
-        attributes: feature.graphic.attributes
-      });
-      
       // Construct attachment URL
       const attachmentUrl = `${serviceUrl}/${objectId}/attachments/${objectId}`;
       
@@ -244,7 +330,6 @@ view.when(() => {
       );
       
       if (caseLayer) {
-        console.log("Applying popup template to:", caseLayer.title);
         caseLayer.popupTemplate = popupTemplate;
       }
     }
@@ -396,63 +481,6 @@ document.querySelector("calcite-combobox")?.addEventListener("calciteComboboxCha
     }
   }
 });
-
-// Create password overlay with improved security
-const passwordOverlay = document.createElement('div');
-passwordOverlay.className = 'password-overlay';
-
-const passwordForm = document.createElement('form');
-passwordForm.className = 'password-form';
-
-const passwordLabel = document.createElement('calcite-label');
-passwordLabel.textContent = 'Enter Password:';
-passwordLabel.setAttribute('for', 'passwordInput');
-
-const passwordInput = document.createElement('calcite-input');
-passwordInput.type = 'password';
-passwordInput.id = 'passwordInput';
-passwordInput.className = 'password-input';
-passwordInput.setAttribute('required', 'true');
-passwordInput.setAttribute('minlength', '8');
-
-const passwordButton = document.createElement('calcite-button');
-passwordButton.type = 'submit';
-passwordButton.textContent = 'Submit';
-passwordButton.className = 'password-button';
-
-passwordForm.appendChild(passwordLabel);
-passwordForm.appendChild(passwordInput);
-passwordForm.appendChild(passwordButton);
-passwordOverlay.appendChild(passwordForm);
-document.body.appendChild(passwordOverlay);
-
-// Handle password form submission with improved security
-passwordForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const password = passwordInput.value;
-  
-  try {
-    const isValid = await verifyPassword(password);
-    if (isValid) {
-      passwordOverlay.style.display = 'none';
-      sessionStorage.setItem('authenticated', 'true');
-    } else {
-      const errorMessage = document.createElement('calcite-notice');
-      errorMessage.setAttribute('kind', 'danger');
-      errorMessage.setAttribute('scale', 's');
-      errorMessage.innerHTML = '<div slot="message">Incorrect password. Please try again.</div>';
-      passwordForm.insertBefore(errorMessage, passwordButton);
-      passwordInput.value = '';
-    }
-  } catch (error) {
-    console.error('Authentication error:', error);
-  }
-});
-
-// Check for existing session
-if (sessionStorage.getItem('authenticated') === 'true') {
-  passwordOverlay.style.display = 'none';
-}
 
 // Keep the view.when() callback as is
 view.when(() => {
