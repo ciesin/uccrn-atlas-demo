@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=$BASE_URL",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview --base=/uccrn-atlas-demo/"
   },
   "dependencies": {
     "@arcgis/core": "~4.32.0",

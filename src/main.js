@@ -6,12 +6,13 @@ import Legend from "@arcgis/core/widgets/Legend";
 import Search from "@arcgis/core/widgets/Search";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import LayerList from "@arcgis/core/widgets/LayerList";
-import { getAllLayers } from "./utils/layers.js";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
 import Basemap from "@arcgis/core/Basemap";
 
-import "@esri/calcite-components";
+import { getAllLayers } from "./utils/layers.js";
+import { plausible } from './utils/analytics.js';
 
+import "@esri/calcite-components";
 import "./style.css";
 
 const webmap = new WebMap({
