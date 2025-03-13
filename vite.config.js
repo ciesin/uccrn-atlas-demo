@@ -11,20 +11,13 @@ export default defineConfig({
         login: resolve(__dirname, 'src/auth/login.html')
       },
       output: {
-        assetFileNames: (assetInfo) => {
-          const info = assetInfo.name.split('.');
-          let extType = info[info.length - 1];
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
-            extType = 'img';
-          } else if (/woff|woff2|ttf|eot/i.test(extType)) {
-            extType = 'fonts';
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
           }
-          return `assets/${extType}/[name]-[hash][extname]`;
-        },
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
+        }
       }
     },
-    assetsInlineLimit: 4096,
+    chunkSizeWarningLimit: 2000
   }
 });
