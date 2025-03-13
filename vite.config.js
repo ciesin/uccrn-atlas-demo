@@ -1,9 +1,14 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: '/uccrn-atlas-demo/',
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        login: 'src/auth/login.html'
+      }
+    }
   }
-})
+});

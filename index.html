@@ -2,21 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <base href="/uccrn-atlas-demo/" />
-    <link rel="icon" href="data:;base64,=" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UCCRN Atlas</title>
-    <!-- Add auth check before anything else loads -->
-    <script>
+    
+    <!-- Base path configuration -->
+    <base href="/uccrn-atlas-demo/" />
+    <link rel="icon" href="data:;base64,=" />
+    
+    <!-- Auth check -->
+    <script type="module">
         // Immediate auth check before any content loads
         if (!sessionStorage.getItem("authState")) {
             window.location.href = window.location.origin + "/uccrn-atlas-demo/src/auth/login.html";
         }
     </script>
+    
+    <!-- Load auth check as module -->
     <script type="module" src="./src/auth/auth-check.js"></script>
-    <script src="./src/auth/auth-check.js"></script>
+    
+    <!-- External resources -->
     <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.9.2/calcite.css" />
     <script type="module" src="https://js.arcgis.com/calcite-components/1.9.2/calcite.esm.js"></script>
+    
+    <!-- Analytics -->
     <script type="module">
         import { plausible } from './src/utils/analytics.js';
         window.plausible = plausible;
