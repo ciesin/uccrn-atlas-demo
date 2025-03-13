@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          BASE_URL: 'https://ciesin.github.io/uccrn-atlas'
+          BASE_URL: '/uccrn-atlas-demo/'
           
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -47,6 +47,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          retention-days: 1
 
   deploy:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
