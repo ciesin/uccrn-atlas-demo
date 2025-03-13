@@ -42,7 +42,7 @@ jobs:
           npm cache verify
         
       - name: Build
-        run: npm run build
+        run: NODE_OPTIONS='--max-old-space-size=4096' npm run build
         env:
           VITE_BASE_URL: '/uccrn-atlas-demo/'
           VITE_ATLAS_PASSWORD: ${{ env.ATLAS_PASSWORD }}
