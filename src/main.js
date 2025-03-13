@@ -432,9 +432,9 @@ passwordForm.addEventListener('submit', async (event) => {
   const password = passwordInput.value;
   
   try {
-    if (await verifyPassword(password)) {
+    const isValid = await verifyPassword(password);
+    if (isValid) {
       passwordOverlay.style.display = 'none';
-      // Store session token
       sessionStorage.setItem('authenticated', 'true');
     } else {
       const errorMessage = document.createElement('calcite-notice');
@@ -442,8 +442,6 @@ passwordForm.addEventListener('submit', async (event) => {
       errorMessage.setAttribute('scale', 's');
       errorMessage.innerHTML = '<div slot="message">Incorrect password. Please try again.</div>';
       passwordForm.insertBefore(errorMessage, passwordButton);
-      
-      // Clear password field
       passwordInput.value = '';
     }
   } catch (error) {

@@ -41,6 +41,7 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_URL: '/uccrn-atlas-demo/'
+          VITE_APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           NODE_ENV: 'production'
           
       - name: Setup Pages

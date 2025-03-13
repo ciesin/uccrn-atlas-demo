@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { config } from './config.js';
 
 // Get password from environment variable
 const rawPassword = import.meta.env.VITE_APP_PASSWORD;
@@ -32,6 +33,13 @@ initializeHash();
 
 export async function verifyPassword(input) {
   if (!input) return false;
+  const correctPassword = import.meta.env.VITE_APP_PASSWORD;
+  if (!correctPassword) {
+    console.error('No password configured!');
+    return false;
+  }
+  
+  const correctHash = await hashString(correctPassword);
   const inputHash = await hashString(input);
-  return inputHash === CORRECT_HASH;
+  return inputHash === correctHash;
 }
