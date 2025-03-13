@@ -12,15 +12,21 @@ async function handleLogin(event) {
     event.preventDefault();
     
     const password = document.getElementById("password").value;
-    const expectedPassword = import.meta.env.VITE_APP_PASSWORD;
-  
-    if (!expectedPassword) {
-        console.error('Password not configured');
-        document.getElementById("error-message").textContent = "Authentication error";
+    
+    if (!validateInput(password)) {
         return;
     }
 
     try {
+        // Use the defined variable instead of import.meta.env
+        const expectedPassword = __PASSWORD__;
+        
+        if (!expectedPassword) {
+            console.error('Password not configured');
+            document.getElementById("error-message").textContent = "Authentication error";
+            return;
+        }
+
         // Client-side password check
         if (password === expectedPassword) {
             const authData = {
@@ -28,17 +34,20 @@ async function handleLogin(event) {
                 timestamp: new Date().getTime()
             };
             sessionStorage.setItem("authState", JSON.stringify(authData));
-            window.location.href = window.location.origin + '/uccrn-atlas-demo/';
+            window.location.href = `${window.location.origin}/uccrn-atlas-demo/`;
         } else {
             document.getElementById("error-message").textContent = "Invalid password";
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error during login:', error);
         document.getElementById("error-message").textContent = "An error occurred";
     }
 }
 
 // Add event listener when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
 });
