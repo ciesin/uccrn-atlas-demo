@@ -12,23 +12,17 @@ async function handleLogin(event) {
     event.preventDefault();
     
     const password = document.getElementById("password").value;
+    const expectedPassword = import.meta.env.VITE_APP_PASSWORD;
   
-    if (!validateInput(password)) {
+    if (!expectedPassword) {
+        console.error('Password not configured');
+        document.getElementById("error-message").textContent = "Authentication error";
         return;
     }
 
     try {
-        const response = await fetch('/api/verify-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ password })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
+        // Client-side password check
+        if (password === expectedPassword) {
             const authData = {
                 authenticated: true,
                 timestamp: new Date().getTime()
@@ -40,14 +34,11 @@ async function handleLogin(event) {
         }
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById("error-message").textContent = "An error occurred during login";
+        document.getElementById("error-message").textContent = "An error occurred";
     }
 }
 
-// Clear any existing authentication on page load
-window.addEventListener('load', () => {
-    sessionStorage.removeItem("authState");
+// Add event listener when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
 });
-
-// Event listener for the login form submission
-document.getElementById('loginForm').addEventListener('submit', handleLogin);

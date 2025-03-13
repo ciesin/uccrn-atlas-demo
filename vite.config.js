@@ -9,15 +9,10 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         login: resolve(__dirname, 'src/auth/login.html')
-      },
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        }
       }
-    },
-    chunkSizeWarningLimit: 2000
+    }
+  },
+  define: {
+    'import.meta.env.VITE_APP_PASSWORD': JSON.stringify(process.env.VITE_APP_PASSWORD)
   }
 });
