@@ -5,6 +5,6 @@ export const plausible = function() {
 // Load Plausible script dynamically
 const script = document.createElement('script');
 script.defer = true;
-script.dataset.domain = 'ciesin.github.io';
+script.dataset.domain = 'ciesin.github.io/uccrn-atlas-demo';
 script.src = 'https://plausible.io/js/script.hash.outbound-links.pageview-props.tagged-events.js';
 document.head.appendChild(script);
