@@ -1,1056 +1,470 @@
-import Expand from '@arcgis/core/widgets/Expand';
+import Bookmarks from "@arcgis/core/widgets/Bookmarks";
+import Expand from "@arcgis/core/widgets/Expand";
 import MapView from "@arcgis/core/views/MapView";
-import Map from "@arcgis/core/Map";
-import Basemap from "@arcgis/core/Basemap";
-import ImageryLayer from "@arcgis/core/layers/ImageryLayer";
-import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
-import LayerList from "@arcgis/core/widgets/LayerList";
-import TimeSlider from "@arcgis/core/widgets/TimeSlider";
-import Zoom from "@arcgis/core/widgets/Zoom";
-import esriConfig from "@arcgis/core/config";
-import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
+import WebMap from "@arcgis/core/WebMap";
 import Legend from "@arcgis/core/widgets/Legend";
-import { uhiRenderer } from '../renderers/uhiRenderer.js';
-import { leczRenderer } from '../renderers/leczRenderer.js';
-import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
-import Feature from "@arcgis/core/widgets/Feature";
-import MultidimensionalSubset from "@arcgis/core/layers/support/MultidimensionalSubset";
 import Search from "@arcgis/core/widgets/Search";
-import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer.js";
-import Layer from "@arcgis/core/layers/Layer";
-import Portal from "@arcgis/core/portal/Portal";
-import PortalGroup from "@arcgis/core/portal/PortalGroup";
-import Collection from "@arcgis/core/core/Collection";
+import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
+import LayerList from "@arcgis/core/widgets/LayerList";
+import { getAllLayers } from "./utils/layers.js";
+import TimeSlider from "@arcgis/core/widgets/TimeSlider";
+import Basemap from "@arcgis/core/Basemap";
 
-import "@esri/calcite-components/dist/calcite/calcite.css";
+import "@esri/calcite-components";
+
 import "./style.css";
 
-// Set the API key
-esriConfig.apiKey = import.meta.env.VITE_ESRI_API_KEY;
-
-// Create grey canvas basemap
-//const basemap = Basemap.fromId("dark-gray-vector");
-// Define the two allowed basemaps
-const darkGrayBasemap = Basemap.fromId("dark-gray-vector");
-const satelliteBasemap = Basemap.fromId("satellite");
-
-
-
-
-// Create variable definitions with multiple variables and dimensions
-const variableDefinitions = [
-  {
-    name: "temperature",
-    label: "Surface Temperature",
-    dimensionName: "StdTime",
-    values: [
-      new Date(2003, 0, 1).getTime(),
-      new Date(2018, 11, 31).getTime()
-    ]
+const webmap = new WebMap({
+  portalItem: {
+    id: "a3108e4f40434380b21fcd0fc80c01fc",
   },
-  {
-    name: "uhi",
-    label: "Urban Heat Island",
-    dimensionName: "StdTime",
-    values: [
-      new Date(2003, 0, 1).getTime(),
-      new Date(2018, 11, 31).getTime()
-    ]
-  }
-];
-
-// Create enhanced multidimensional subset
-const multidimensionalSubset = new MultidimensionalSubset({
-  subsetDefinitions: [
-    {
-      variableName: "temperature",
-      dimensionName: "StdTime",
-      values: variableDefinitions[0].values,
-      isSlice: false
-    },
-    {
-      variableName: "uhi",
-      dimensionName: "StdTime",
-      values: variableDefinitions[1].values,
-      isSlice: false
-    },
-  ]
+  layers: getAllLayers()
 });
 
-// Create imagery layers
-const yceouhi_v4 = new ImageryLayer({
-  url: "https://gis.earthdata.nasa.gov/image/rest/services/sdei/ciesin_sedac_sdei_yceouhi_v4/ImageServer",
-  renderer: uhiRenderer,
-  opacity: 0.7,
-  title: "Yale Center for Earth Observation (YCEO) Surface Urban Heat Islands, Version 4, 2003-2018",
-  multidimensionalSubset: multidimensionalSubset,
-  useViewTime: true,
-  popupEnabled: true,
-  popupTemplate: {
-    title: "UHI Values",
-    content: "{Raster.ServicePixelValue} Celcius",
-    returnPixelValues: false
-  },
-  visible: false
-});
-
-const lecz_v3 = new ImageryLayer({
-  url: "https://gis.earthdata.nasa.gov/image/rest/services/lecz/lecz_urban_rural_population_land_area_estimates_v3/ImageServer",
-  renderer: leczRenderer,
-  opacity: 0.5,
-  title: "Low Elevation Coastal Zone (LECZ) Urban-Rural Population and Land Area Estimates, Version 3",
-  useViewTime: true,
-  popupEnabled: true,
-  popupTemplate: {
-    title: "LECZ Values",
-    content: "{Raster.ServicePixelValue}m",
-    returnPixelValues: true
-  },
-  visible: false
-});
-
-const ssp245 = new ImageryTileLayer({
-  url: "https://tiledimageservices2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/changeintemp_10pct_2050s_ssp245_2050s_ssp245_subset_test2/ImageServer",
-  opacity:0.5,
-  title: "changeintemp_10pct_2050s_ssp245-2050s-ssp245_subset",
-  useViewTime: false,
-  popupEnabled: true,
-  popupTemplate: {
-    title: "ssp245",
-    content: "{Raster.ServicePixelValue}",
-    returnPixelValues: true
-  },
-  visible: false
-});
-
-// Create GeoJSON layers with correct relative paths
-const layerOptions = {
-  selectionEnabled: false,
-  defaultPopupTemplateEnabled: false,
-  renderer: {
-    type: "simple",
-    symbol: {
-      type: "simple-fill",
-      color: [0, 0, 0, 0],
-      outline: {
-        color: [0, 255, 0, 1],
-        width: 1
-      }
-    }
-  }
-};
-
-const nycLayer = new GeoJSONLayer({
-  url: new URL("../cities/new-york-city.geojson", import.meta.url).href,
-  title: "New York City",
-  ...layerOptions
-});
-
-const laLayer = new GeoJSONLayer({
-  url: new URL("../cities/los-angeles.geojson", import.meta.url).href,
-  title: "Los Angeles City",
-  ...layerOptions
-});
-
-const copLayer = new GeoJSONLayer({
-  url: new URL("../cities/copenhagen.geojson", import.meta.url).href,
-  title: "Copenhagen",
-  ...layerOptions
-});
-
-const mexLayer = new GeoJSONLayer({
-  url: new URL("../cities/mexico-city.geojson", import.meta.url).href,
-  title: "Mexico City",
-  ...layerOptions
-});
-
-const saLayer = new GeoJSONLayer({
-  url: new URL("../cities/singapore.geojson", import.meta.url).href,
-  title: "Singapore",
-  ...layerOptions
-});
-
-const DurbanLayer = new GeoJSONLayer({
-  url: new URL("../cities/Durban.geojson", import.meta.url).href,
-  title: "Durban",
-  ...layerOptions
-});
-
-const rioLayer = new GeoJSONLayer({
-  url: new URL("../cities/Rio-de-Janeiro-city.geojson", import.meta.url).href,
-  title: "Rio de Janeiro",
-  ...layerOptions
-});
-
-const shanghaiLayer = new GeoJSONLayer({
-  url: new URL("../cities/Shanghai.geojson", import.meta.url).href,
-  title: "Shanghai",
-  ...layerOptions
-});
-
-const naplesLayer = new GeoJSONLayer({
-  url: new URL("../cities/Naples.geojson", import.meta.url).href,
-  title: "Naples",
-  ...layerOptions
-});
-
-
-const kanoLayer = new GeoJSONLayer({
-  url: new URL("../cities/Kano.geojson", import.meta.url).href,
-  title: "Kano",
-  ...layerOptions
-});
-
-// Create map with basemap and layers
-// Create map with a default basemap
-const map = new Map({
-  basemap: darkGrayBasemap,
-  layers: [yceouhi_v4, lecz_v3, ssp245, nycLayer, laLayer, copLayer, mexLayer, saLayer, DurbanLayer, rioLayer, shanghaiLayer, naplesLayer, kanoLayer],
-  // Add attribution
-  portalItem: {
-    attribution: "CIESIN, Columbia University"
-  }
-});
-
-//////////////////////////////////////////////////////////////////checked boxes 
-// Load Mega City Layer with Custom Symbol
-const megaCityLayer = new GeoJSONLayer({
-    url: new URL("../cities/MegaCity.geojson", import.meta.url).href,
-    title: "Mega Cities",
-    visible: true, 
-    renderer: {
-        type: "simple",
-        symbol: {
-            type: "simple-marker",
-            style: "circle",
-            color: [0, 0, 255, 1], 
-            size: 12, // 
-            outline: {
-                color: [0, 0, 0, 0], 
-                width: 0
-            }
-        }
-    }
-});
-
-// Load Large City Layer with Custom Symbol
-const largeCityLayer = new GeoJSONLayer({
-    url: new URL("../cities/LargeCity.geojson", import.meta.url).href,
-    title: "Large Cities",
-    visible: true, 
-    renderer: {
-        type: "simple",
-        symbol: {
-            type: "simple-marker",
-            style: "circle", 
-            color: [0, 128, 0, 1], 
-            size: 7, // 
-            outline: {
-                color: [0, 0, 0, 0], 
-                width: 0
-            }
-        }
-    }
-});
-
-// Add layers to the map, but DO NOT add to the layer list UI
-map.addMany([megaCityLayer, largeCityLayer]);
-///////////////////////////////////////////////////////////////checked boxes end 
-
-// Add portal layer
-Layer.fromPortalItem({
-  portalItem: {
-    id: "20da8d9af73043bd88a3566d5602b86e" 
-  }
-}).then((layer) => {
-  layer.visible = false; // Start with layer hidden
-  map.add(layer);
-
-  // Add layer to layer list
-  layerList.operationalItems.add({
-    layer: layer,
-    title: "Global climate (Köppen–Geiger-climate-classification)"
-  });
-});
-
-// Add portal layer
-Layer.fromPortalItem({
-  portalItem: {
-    id: "6690a75950004b79927f585ee79c9a7e" 
-  }
-}).then((layer) => {
-  layer.visible = false; // Start with layer hidden
-  map.add(layer);
-
-  // Add layer to layer list
-  layerList.operationalItems.add({
-    layer: layer,
-    title: "Global Anthropogenic Biomes"
-  });
-});
-
-// Add portal layer
-Layer.fromPortalItem({
-  portalItem: {
-    id: "eb4f0fd5274242a18bde901f78f7584d" 
-  }
-}).then((layer) => {
-  layer.visible = false; // Start with layer hidden
-  map.add(layer);
-
-  // Add layer to layer list
-  layerList.operationalItems.add({
-    layer: layer,
-    title: "Land Cover 2023 MODIS"
-  });
-});
-
-// Add portal layer for population Cover
-Layer.fromPortalItem({
-  portalItem: {
-    id: "9778e7bddfdc4b7889fd2f385e8346f0"
-  }
-}).then((layer) => {
-  layer.visible = true;
-  map.add(layer);
-
-  // Add layer to layer list
-  layerList.operationalItems.add({
-    layer: layer,
-    title: "Population count 2025 (GHSL_3arcsec)"
-  });
-});
-
-// Add portal layer for uccrn base layer
-Layer.fromPortalItem({
-  portalItem: {
-    id: "9b96670f10bb4f2085cf7cf70ad96b3d"
-  }
-}).then((layer) => {
-  layer.visible = true;
-  map.add(layer);
-
-  // Add layer to layer list
-  layerList.operationalItems.add({
-    layer: layer,
-    title: "UCCRN Atlas Cities"
-  });
-});
-
-// Setup portal and group query
-const portal = new Portal();
-portal.load().then(() => {
-  const portalGroup = new PortalGroup({
-    id: "96adc565a1054c1cb405efc9b89edb9b",
-    portal: portal
-  });
-
-  portalGroup.load().then(() => {
-    const queryParams = {
-      query: "type: Feature Layer",
-      sortField: "title",
-      sortOrder: "asc",
-      num: 100
-    };
-
-    const queryOptions = {
-      reference: {
-        portal: portal
-      }
-    };
-
-    portalGroup.queryItems(queryParams, queryOptions).then((results) => {
-      results.results.forEach(item => {
-        Layer.fromPortalItem({
-          portalItem: item
-        }).then(layer => {
-          layer.visible = false;
-          map.add(layer);
-          
-          layerList.operationalItems.add({
-            layer: layer,
-            title: item.title
-          });
-        }).catch(error => {
-          console.error("Error loading layer:", error);
-        });
-      });
-    });
-  });
-});
-
-// Create view
-const activeView = new MapView({
-  zoom: 2,
-  center: [2.35, 48.85], // Paris coordinates
+const view = new MapView({
   container: "viewDiv",
-  map: map,
-  popupEnabled: true,
-  highlightOptions: {
-    color: [0, 0, 0, 0],
-    haloOpacity: 0,
-    fillOpacity: 0
+  map: webmap,
+  center: [0, 0],
+  zoom: 2,
+  ui: {
+    components: ["zoom"] // Only keep zoom controls, removes attribution
   }
-});
-
-// Create layer list widget with reordering enabled
-const layerList = new LayerList({
-  view: activeView,
-  dragEnabled: true, // Enable drag and drop
-  listItemCreatedFunction: (event) => {
-    const item = event.item;
-  }
-});
-
-// Handle layer reordering actions
-layerList.on("trigger-action", (event) => {
-  const layer = event.item.layer;
-  const index = map.layers.indexOf(layer);
-
-  if (event.action.id === "move-up" && index > 0) {
-    map.reorder(layer, index - 1);
-  } else if (event.action.id === "move-down" && index < map.layers.length - 1) {
-    map.reorder(layer, index + 1);
-  }
-});
-
-// Create expand widget for layer list
-const layerListExpand = new Expand({
-  view: activeView,
-  content: layerList,
-  expanded: false
-});
-
-// Create time slider widget
-const timeSlider = new TimeSlider({
-  view: activeView,
-  container: document.createElement("div")
-});
-
-// Create expand widget for time slider
-const timeSliderExpand = new Expand({
-  view: activeView,
-  content: timeSlider,
-  expanded: false
-});
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Create feature widget and expand widget
-const featureWidgetContainer = document.createElement("div");
-featureWidgetContainer.className = "feature-widget-container"; // Base styles
-
-// Ensure the container is ready with expanded styles if starting expanded
-featureWidgetContainer.classList.add("feature-widget-container-expanded"); // Start expanded
-
-const featureWidget = new Feature({
-  container: featureWidgetContainer,
-  map: map,
-  spatialReference: activeView.spatialReference
-});
-
-// Add iframe to feature widget container
-// const pdfIframe = document.createElement("iframe");
-// pdfIframe.style.width = "100%";
-// pdfIframe.style.height = "calc(101vh - 100px)";
-// pdfIframe.style.border = "none";
-// pdfIframe.style.display = "block";
-// featureWidgetContainer.appendChild(pdfIframe);
-
-
-// Add an iframe to the feature widget container for HTML content
-const htmlIframe = document.createElement("iframe");
-htmlIframe.style.width = "100%";
-htmlIframe.style.height = "calc(100vh - 100px)";
-htmlIframe.style.border = "none";
-console.log("Attempting to load:", "./info.html");
-htmlIframe.src = "./info.html";
-featureWidgetContainer.appendChild(htmlIframe);
-
-/////////////////////////////////////////////////////////////////////////////////filter 
-
-htmlIframe.onload = function () {
-    const iframeDoc = htmlIframe.contentDocument || htmlIframe.contentWindow.document;
-    const citySelect = iframeDoc.getElementById("citySelect");
-    const megaCitiesCheck = iframeDoc.getElementById("megaCitiesCheck");
-    const largeCitiesCheck = iframeDoc.getElementById("largeCitiesCheck");
-    const caseStudySelect = iframeDoc.getElementById("caseStudySelect");
-    const provenanceSelect = iframeDoc.getElementById("provenanceSelect");
-
-    if (!citySelect || !megaCitiesCheck || !largeCitiesCheck || !caseStudySelect || !provenanceSelect) {
-        console.error("Dropdowns not found in info.html");
-        return;
-    }
-
-    // Ensure checkboxes are checked by default
-    megaCitiesCheck.checked = true;
-    largeCitiesCheck.checked = true;
-
-    // Define city layers and their coordinates
-    const cities = [
-        { name: "New York City", layer: nycLayer, center: [-74.006, 40.7128], zoom: 10 },
-        { name: "Los Angeles", layer: laLayer, center: [-118.2437, 34.0522], zoom: 10 },
-        { name: "Copenhagen", layer: copLayer, center: [12.5683, 55.6761], zoom: 11 },
-        { name: "Mexico City", layer: mexLayer, center: [-99.1332, 19.4326], zoom: 10 },
-        { name: "Durban", layer: DurbanLayer, center: [31.0218, -29.8587], zoom: 12 },
-        { name: "Rio de Janeiro", layer: rioLayer, center: [-43.1729, -22.9068], zoom: 11 },
-        { name: "Singapore", layer: saLayer, center: [103.8198, 1.3521], zoom: 11 }
-    ];
-
-    // Define Mega Cities and Large Cities layers
-    const megaCities = megaCityLayer;
-    const largeCities = largeCityLayer;
-
-    //fill City Dropdown
-    cities.forEach(city => {
-        const option = iframeDoc.createElement("option");
-        option.value = city.name;
-        option.textContent = city.name;
-        citySelect.appendChild(option);
-    });
-
-    //  City Dropdown Selection
-    citySelect.addEventListener("change", () => {
-        const selectedCity = cities.find(c => c.name === citySelect.value);
-        if (selectedCity) {
-            activeView.goTo({
-                center: selectedCity.center,
-                zoom: selectedCity.zoom
-            });
-
-            // Make only the selected city's layer visible, hide others
-            cities.forEach(city => {
-                city.layer.visible = (city.name === selectedCity.name);
-            });
-        }
-    });
-
-    //  Mega Cities Checkbox
-    megaCitiesCheck.addEventListener("change", () => {
-        megaCities.visible = megaCitiesCheck.checked;
-        console.log(megaCitiesCheck.checked ? "Mega Cities are now visible." : "Mega Cities are now hidden.");
-    });
-
-    // Large Cities Checkbox
-    largeCitiesCheck.addEventListener("change", () => {
-        largeCities.visible = largeCitiesCheck.checked;
-        console.log(largeCitiesCheck.checked ? "Large Cities are now visible." : "Large Cities are now hidden.");
-    });
-
-    //  Case Study Type Dropdown
-    const caseStudyOptions = ["Mitigation", "Adaptation", "Hybrid"];
-
-    caseStudyOptions.forEach(optionText => {
-        const option = iframeDoc.createElement("option");
-        option.value = optionText;
-        option.textContent = optionText;
-        caseStudySelect.appendChild(option);
-    });
-
-    // Case Study Type Selection (For Future Use)
-    caseStudySelect.addEventListener("change", () => {
-        const selectedCaseStudy = caseStudySelect.value;
-        console.log(`Case Study selected: ${selectedCaseStudy}`);
-    });
-
-    //  Case Study Provenance Dropdown
-    const provenanceOptions = ["Peer-reviewed", 	"Government document", 	"City network", "Knowledge network", "Non-government organization", "Other"];
-
-    provenanceOptions.forEach(optionText => {
-        const option = iframeDoc.createElement("option");
-        option.value = optionText;
-        option.textContent = optionText;
-        provenanceSelect.appendChild(option);
-    });
-
-    // Case Study Type Selection (For Future Use)
-    provenanceSelect.addEventListener("change", () => {
-        const provenanceStudy = provenanceSelect.value;
-        console.log(`Case Study selected: ${provenanceStudy}`);
-    });
-
-    console.log("City filter, Mega Cities, Large Cities, and Case Study dropdown successfully injected into info.html");
-};
-/////////////////////////////////////////////////////////////////////////////////// end of filter
-
-
-const featureExpand = new Expand({
-  view: activeView,
-  content: featureWidgetContainer,
-  expanded: true, // Ensure the widget starts as expanded
-  expandIconClass: "esri-icon-layer-list",
-  expandTooltip: "Feature Details"
-});
-
-
-// Dynamically add or remove the expanded class based on the widget's state
-featureExpand.watch("expanded", (expanded) => {
-  console.log('Expanded state changed to:', expanded);  // Debugging output
-  if (expanded) {
-    featureWidgetContainer.classList.add("feature-widget-container-expanded");
-  } else {
-    featureWidgetContainer.classList.remove("feature-widget-container-expanded");
-  }
-});
-
-// Add expand widget to the view
-activeView.ui.add(featureExpand, "top-right");
-
-// Debugging output to check initialization
-console.log("Feature widget added:", featureExpand);
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-// Create widgets
-const zoom = new Zoom({
-  view: activeView
-});
-
-// Create BasemapGallery with only two basemaps
-const basemapGallery = new BasemapGallery({
-  view: activeView,
-    source: new Collection([
-    darkGrayBasemap, satelliteBasemap])
-});
-
-
-// Create expand widget for basemap gallery
-const bgExpand = new Expand({
-  view: activeView,
-  content: basemapGallery,
-  expanded: false
-});
-
-// Create legend widget
-const legend = new Legend({
-  view: activeView
-});
-
-// Create expand widget for legend (used only on mobile)
-const legendExpand = new Expand({
-  view: activeView,
-  content: legend,
-  expanded: false,
-  expandIconClass: "esri-icon-legend"
-});
-
-// Initialize time slider when view and layer are ready
-activeView.when(() => {
-  yceouhi_v4.when(() => {
-    timeSlider.fullTimeExtent = yceouhi_v4.timeInfo.fullTimeExtent;
-    timeSlider.stops = {
-      interval: yceouhi_v4.timeInfo.interval
-    };
-  });
-});
-
-// Update time slider configuration
-timeSlider.when(() => {
-  timeSlider.watch("timeExtent", (timeExtent) => {
-    multidimensionalSubset.subsetDefinitions[0].values = [
-      timeExtent.start.getTime(),
-      timeExtent.end.getTime()
-    ];
-    yceouhi_v4.refresh();
-  });
 });
 
 // Create logo container
-const logoDiv = document.createElement("div");
-logoDiv.className = "logo-container";
-logoDiv.textContent = "UCCRN Atlas Demo";
+const logoContainer = document.createElement('div');
+logoContainer.className = 'logo-container';
 
-// Add settings icon to the top right side
-const settingsButton = document.createElement("div");
-settingsButton.className = "esri-widget esri-widget--button esri-icon esri-icon-settings";
-settingsButton.icon = "gear";
-settingsButton.addEventListener("click", () => {
-  dialog.open = true;
+const logoText = document.createElement('span');
+logoText.className = 'logo-text';
+logoText.textContent = 'UCCRN Atlas';
+
+const betaBadge = document.createElement('span');
+betaBadge.className = 'beta-badge';
+betaBadge.textContent = 'Beta';
+
+logoContainer.appendChild(logoText);
+logoContainer.appendChild(betaBadge);
+
+// Add logo container to the view
+view.ui.add({
+  component: logoContainer,
+  position: "top-left",
+  index: 0
 });
 
-function updateTimeSliderVisibility() {
-  const hasVisibleTimeLayer = activeView.map.layers.some(layer => 
-    layer.visible && layer.timeInfo
-  );
-  timeSliderExpand.visible = hasVisibleTimeLayer;
-  timeSliderExpand.container.classList.toggle('time-slider-hidden', !hasVisibleTimeLayer);
-}
-
-activeView.map.layers.forEach(layer => {
-  layer.watch("visible", updateTimeSliderVisibility);
-});
-
-// Track the currently open widget
-let currentOpenWidget = null;
-
-// Function to close the currently open widget
-function closeCurrentWidget() {
-  if (currentOpenWidget) {
-    currentOpenWidget.expanded = false;
-    currentOpenWidget = null;
-  }
-}
-
-// Function to update the PDF iframe source based on the city
-function updatePdfIframe(city) {
-  const pdfBasePath = "./pdfs/";
-  let pdfPath;
-  
-  try {
-    if (city === "New York City") {
-      pdfPath = `${pdfBasePath}nyc-test.pdf#zoom=35`;
-    } else if (city === "Los Angeles City") {
-      pdfPath = `${pdfBasePath}la-test.pdf#zoom=35`;
-    } else if (city === "Copenhagen") {
-      pdfPath = `${pdfBasePath}cop-test.pdf#zoom=35`;
-    } else if (city === "Mexico City") {
-      pdfPath = `${pdfBasePath}mex-test.pdf#zoom=35`;
-    } else if (city === "Singapore") {
-      pdfPath = `${pdfBasePath}sa-test.pdf#zoom=35`;  
-    } else if (city === "Durban") {
-      pdfPath = `${pdfBasePath}Durb-test.pdf#zoom=35`;
-    } else if (city === "Rio") {
-    pdfPath = `${pdfBasePath}rio-test.pdf#zoom=35`;
-    }
-    
-    if (pdfPath) {
-      pdfIframe.src = pdfPath;
-      pdfIframe.onerror = () => {
-        console.error(`Failed to load PDF for ${city}`);
-      };
-    }
-  } catch (error) {
-    console.error(`Error loading PDF for ${city}:`, error);
-  }
-}
-
-// Function to handle layer view click events
-function handleLayerViewClick(event, layer, city) {
-  activeView.hitTest(event).then((response) => {
-    const results = response.results;
-    
-    if (results.length > 0 && results[0].graphic.layer === layer) {
-      const graphic = results[0].graphic;
-      
-      featureWidget.graphic = graphic;
-      updatePdfIframe(city);
-      closeCurrentWidget();
-      featureExpand.expanded = true;
-      currentOpenWidget = featureExpand;
-    }
-  });
-}
-
-// Add click event listeners for both layers
-activeView.whenLayerView(nycLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, nycLayer, "New York City"));
-});
-
-activeView.whenLayerView(laLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, laLayer, "Los Angeles City"));
-});
-
-activeView.whenLayerView(copLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, copLayer, "Copenhagen"));
-});
-
-activeView.whenLayerView(mexLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, mexLayer, "Mexico City"));
-});
-
-activeView.whenLayerView(saLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, saLayer, "Singapore"));
-});
-
-activeView.whenLayerView(DurbanLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, DurbanLayer, "Durban"));
-});
-
-activeView.whenLayerView(rioLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, rioLayer, "Rio de Janeiro"));
-});
-
-activeView.whenLayerView(shanghaiLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, shanghaiLayer, "Shanghai"));
-});
-
-activeView.whenLayerView(naplesLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, naplesLayer, "Naples"));
-});
-
-activeView.whenLayerView(kanoLayer).then((layerView) => {
-  activeView.on("click", (event) => handleLayerViewClick(event, kanoLayer, "Kano"));
-});
-
-// Add click handler to close feature widget when clicking outside
-activeView.on("click", (event) => {
-  activeView.hitTest(event).then((response) => {
-    if (response.results.length === 0 && featureExpand.expanded) {
-      featureExpand.expanded = false;
-      currentOpenWidget = null;
-    }
-  });
-});
-
-// Create variable selector container
-const rendererDiv = document.createElement("div");
-rendererDiv.id = "rendererDiv";
-rendererDiv.className = "esri-widget renderer-container";
-
-// Add heading
-const heading = document.createElement("h3");
-heading.className = "esri-widget__heading renderer-heading";
-heading.textContent = "Multidimensional Filter";
-rendererDiv.appendChild(heading);
-
-// Add description text
-const description = document.createElement("p");
-description.className = "esri-widget__paragraph renderer-description";
-description.textContent = "Filter UHI data by variables and time.";
-rendererDiv.appendChild(description);
-
-// Add select label
-const selectLabel = document.createElement("label");
-selectLabel.className = "esri-feature-form__label renderer-label";
-selectLabel.textContent = "Select a variable:";
-rendererDiv.appendChild(selectLabel);
-
-// Get multidimensional variables when layer loads
-yceouhi_v4.when(() => {
-  const variables = yceouhi_v4.rasterInfo.multidimensionalInfo.variables;
-  
-  const variableSelect = document.createElement("select");
-  variableSelect.id = "variableName";
-  variableSelect.className = "esri-input esri-select renderer-select";
-
-  variables.forEach(variable => {
-    const option = document.createElement("option");
-    option.value = variable.name;
-    option.textContent = variable.description || variable.name;
-    variableSelect.appendChild(option);
-  });
-
-  variableSelect.addEventListener("change", () => {
-    const selectedVar = variableSelect.value;
-    const timeValues = variableDefinitions.find(v => v.name === selectedVar)?.values || [];
-    
-    const newDefinitions = [
-      {
-        variableName: selectedVar,
-        dimensionName: "StdTime",
-        values: timeValues,
-        isSlice: false
-      },
-      {
-        variableName: selectedVar,
-        dimensionName: "StdZ",
-        values: [0, 2],
-        isSlice: false
-      }
-    ];
-    
-    yceouhi_v4.multidimensionalDefinition = newDefinitions;
-    yceouhi_v4.refresh();
-  });
-
-  rendererDiv.appendChild(variableSelect);
-});
-
-// Create search widget with GeoJSON sources
 const searchWidget = new Search({
-  view: activeView,
-  includeDefaultSources: false,
-  sources: [
-    {
-      layer: nycLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "New York City",
-      placeholder: "Search NYC"
-    },
-    {
-      layer: laLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Los Angeles",
-      placeholder: "Search LA"
-    },
-    {
-      layer: copLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Copenhagen",
-      placeholder: "Search Copenhagen"
-    },
-    {
-      layer: mexLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Mexico City",
-      placeholder: "Search Mexico City"
-    },
-    {
-      layer: saLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Singapore",
-      placeholder: "Search Singapore"
-    },
-    {
-      layer: DurbanLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Durban",
-      placeholder: "Search Durban"
-    },
-    {
-      layer: rioLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Rio de Janeiro",
-      placeholder: "Search Rio de Janeiro"
-    },
-    {
-      layer: shanghaiLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Shanghai",
-      placeholder: "Search Shanghai"
-    },
-    {
-      layer: naplesLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Naples",
-      placeholder: "Search Naples"
-    },
-    {
-      layer: kanoLayer,
-      searchFields: ["name", "uccrn"],
-      displayField: "name",
-      exactMatch: false,
-      outFields: ["*"],
-      name: "Kano",
-      placeholder: "Search Kano"
+  view: view,
+  expanded: false
+});
+
+const basemapGallery = new BasemapGallery({
+  view: view,
+  source: [
+    Basemap.fromId("osm"),  // osm no labels
+    Basemap.fromId("satellite"),  // satellite no labels
+  ]
+});
+
+const legend = new Legend({
+  view: view,
+});
+
+const legendExpand = new Expand({
+  view: view,
+  content: legend,
+  expanded: false,
+});
+
+const layerList = new LayerList({
+  view: view,
+  dragEnabled: true,
+});
+
+const llExpand = new Expand({
+  view: view,
+  content: layerList,
+  expanded: false,
+});
+
+const bgExpand = new Expand({
+  view: view,
+  content: basemapGallery,
+  expanded: false,
+});
+
+const timeSlider = new TimeSlider({
+  view: view,
+  mode: "instant",
+  expanded: false,
+  container: document.createElement("div")
+});
+
+const timeSliderExpand = new Expand({
+  view: view,
+  content: timeSlider,
+  expanded: false,
+  expandIconClass: "esri-icon-time-clock",
+  group: "bottom-right"
+});
+
+view.ui.add(timeSliderExpand, {
+  position: "bottom-right"
+});
+
+const homeBtn = document.getElementById("homeBtn");
+
+homeBtn?.addEventListener("click", () => {
+  optionsSheet.open = !optionsSheet.open;
+  optionsPanel.closed = false;
+  document.body.classList.toggle('panel-open', optionsSheet.open);
+});
+
+view.ui.add({
+  component: homeBtn,
+  position: "top-right",
+  index: 4
+});
+
+// Create a set of fields to exclude
+const excludedFields = new Set([
+  'OBJECTID',
+  'unique_identifier',
+  'ObjectId', 
+  'FID', 
+  'GlobalID', 
+  'Shape', 
+  'Shape_Length', 
+  'Shape_Area'
+]);
+
+// Update the popup template
+const popupTemplate = {
+  title: "{Title}",
+  outFields: ["*"],
+  content: async (feature) => {
+    const div = document.createElement("div");
+    div.className = "custom-popup";
+    
+    // Create main content table
+    const table = document.createElement("table");
+    table.className = "popup-table";
+    
+    // Get layer and field configurations
+    const layer = feature.graphic.layer;
+    const fields = layer.fields || [];
+    const fieldMap = new Map(fields.map(f => [f.name, f.alias || f.name]));
+    
+    // Add attribute rows, excluding system fields
+    Object.entries(feature.graphic.attributes).forEach(([field, value]) => {
+      if (value && !excludedFields.has(field)) {
+        const row = table.insertRow();
+        const fieldCell = row.insertCell();
+        const valueCell = row.insertCell();
+        
+        fieldCell.className = "field-name";
+        // Use field alias if available, otherwise format the field name
+        fieldCell.textContent = fieldMap.get(field) || 
+                               field.replace(/([A-Z])/g, ' $1')
+                                   .replace(/_/g, ' ')
+                                   .trim();
+        
+        valueCell.className = "field-value";
+        valueCell.textContent = value;
+      }
+    });
+    
+    div.appendChild(table);
+
+    // Handle attachments
+    try {
+      const objectId = feature.graphic.attributes.OBJECTID;
+      const serviceUrl = "https://services2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/uccrn_base_layer/FeatureServer/0";
+      
+      // Log the feature data
+      console.log('Feature Data:', {
+        objectId: objectId,
+        attributes: feature.graphic.attributes
+      });
+      
+      // Construct attachment URL
+      const attachmentUrl = `${serviceUrl}/${objectId}/attachments/${objectId}`;
+      
+      // Log the constructed URL
+      console.log('Attachment URL:', attachmentUrl);
+      
+      // Create document viewer section
+      const viewerSection = document.createElement("div");
+      viewerSection.className = "document-viewer-section";
+      
+      const heading = document.createElement("h3");
+      heading.className = "viewer-heading";
+      heading.textContent = "Related Document";
+      
+      const iframe = document.createElement("iframe");
+      iframe.src = attachmentUrl;
+      iframe.className = "document-frame";
+      
+      // Log iframe creation
+      console.log('Creating iframe with URL:', iframe.src);
+      
+      viewerSection.appendChild(heading);
+      viewerSection.appendChild(iframe);
+      div.appendChild(viewerSection);
+    } catch (error) {
+      console.error("Error handling attachments:", error);
     }
-  ],
-  popupEnabled: false,
-  popupTemplate: {
-    title: "{name}"
+    
+    return div;
+  }
+};
+
+// Configure popup settings
+view.popup.dockEnabled = true;
+view.popup.dockOptions = {
+  buttonEnabled: false,
+  breakpoint: false,
+  position: "bottom-left"
+};
+
+// Apply popup template to case_locations layer only
+view.when(() => {
+  webmap.loadAll().then(() => {
+    // Find the UCCRN Atlas group layer
+    const uccrnGroup = webmap.layers.find(layer => 
+      layer.title?.toLowerCase().includes("uccrn atlas")
+    );
+    
+    if (uccrnGroup?.layers) {
+      // Find and apply popup template only to case_locations layer
+      const caseLayer = uccrnGroup.layers.find(layer => 
+        layer.title?.toLowerCase().includes("case locations")
+      );
+      
+      if (caseLayer) {
+        console.log("Applying popup template to:", caseLayer.title);
+        caseLayer.popupTemplate = popupTemplate;
+      }
+    }
+  });
+});
+
+// Sheet handling
+const optionsSheet = document.getElementById("optionsSheet");
+const optionsPanel = document.getElementById("optionsPanel");
+
+// Handle panel close
+optionsPanel?.addEventListener("calcitePanelClose", () => {
+  optionsSheet.open = false;
+  document.body.classList.remove('panel-open');
+});
+
+// Handle chip selections
+document.querySelector("calcite-chip-group")?.addEventListener("calciteChipGroupSelect", (event) => {
+  const selectedChip = event.target.selectedItems[0];
+  
+  switch(selectedChip?.value) {
+    case "base":
+      bgExpand.expand();
+      break;
+    case "legend":
+      legendExpand.expand();
+      break;
+    case "layers":
+      llExpand.expand();
+      break;
   }
 });
 
-// Create expand widget for search
-const searchExpand = new Expand({
-  view: activeView,
-  content: searchWidget,
-  expanded: false,
-  expandIconClass: "esri-icon-search"
+// Handle opacity changes
+document.querySelector("calcite-slider")?.addEventListener("calciteSliderChange", (event) => {
+  const opacity = event.target.value;
+  webmap.layers.forEach(layer => {
+    layer.opacity = opacity;
+  });
 });
 
-// Create expand widget
-const selectorExpand = new Expand({
-  view: activeView,
-  content: rendererDiv,
-  expanded: false,
-  expandIcon: "filter"
+// Handle display mode changes
+document.querySelector("calcite-segmented-control")?.addEventListener("calciteSegmentedControlSelect", (event) => {
+  const mode = event.detail;
+  webmap.layers.forEach(layer => {
+    layer.visible = mode === "visible" || mode === "highlight";
+  });
 });
 
-// Add to view UI
-activeView.ui.add(searchExpand, "top-right");
-// Add the widgets to the view
-activeView.ui.add(logoDiv, "top-left");
-activeView.ui.add(featureExpand, "top-right");
-activeView.ui.move("zoom", "top-right");
-activeView.ui.add(bgExpand, "top-right");
-activeView.ui.add(layerListExpand, "top-left");
-activeView.ui.add(timeSliderExpand, "bottom-left");
-activeView.ui.add(legendExpand, "bottom-right");
-activeView.ui.add(settingsButton, "top-right");
+document.querySelector('calcite-button[slot="footer"]')
+        .addEventListener('click', handleApplyChanges);
 
-// Add to view UI
-activeView.ui.add(selectorExpand, "top-left");
+// Add the handleApplyChanges function
+function handleApplyChanges() {
+  // Get current settings from UI components
+  const opacity = document.querySelector("calcite-slider")?.value;
+  const displayMode = document.querySelector("calcite-segmented-control")?.value;
 
-// Add function to check multidimensional layer visibility
-function updateMultidimensionalFilterVisibility() {
-  const hasVisibleMultidimensionalLayer = activeView.map.layers.some(layer => 
-    layer.visible && layer === yceouhi_v4
+  // Apply settings
+  if (opacity !== undefined) {
+    webmap.layers.forEach(layer => {
+      layer.opacity = opacity;
+    });
+  }
+
+  if (displayMode) {
+    webmap.layers.forEach(layer => {
+      layer.visible = displayMode === "visible" || displayMode === "highlight";
+    });
+  }
+
+  // Close the options panel
+  optionsSheet.open = false;
+  optionsPanel.closed = true;
+  document.body.classList.remove('panel-open');
+}
+
+// Add this after your other event listeners:
+
+document.querySelector("calcite-chip-group")?.addEventListener("calciteChipGroupSelect", (event) => {
+  const selectedSolutions = event.target.selectedItems;
+  
+  // Find the case_locations layer in the UCCRN Atlas group
+  const uccrnGroup = webmap.layers.find(layer => 
+    layer.title?.toLowerCase().includes("uccrn atlas")
   );
   
-  selectorExpand.visible = hasVisibleMultidimensionalLayer;
-  selectorExpand.container.classList.toggle('filter-hidden', !hasVisibleMultidimensionalLayer);
-}
-
-activeView.map.layers.forEach(layer => {
-  layer.watch("visible", updateMultidimensionalFilterVisibility);
+  const caseLayer = uccrnGroup?.layers.find(layer => 
+    layer.title?.toLowerCase().includes("case_locations")
+  );
+  
+  if (caseLayer) {
+    if (selectedSolutions.length === 0) {
+      // Show all features if no solutions are selected
+      caseLayer.definitionExpression = "";
+    } else {
+      // Create definition expression for selected solutions
+      const solutionQueries = selectedSolutions.map(chip => {
+        // Handle combined terms in the Solutions field
+        let solutionValue = chip.textContent.trim();
+        if (solutionValue === "Urban Planning" || 
+            solutionValue === "Design" || 
+            solutionValue === "Architecture") {
+          return `Solutions LIKE '%${solutionValue}%'`;
+        }
+        return `Solutions LIKE '%${solutionValue}%'`;
+      });
+      
+      caseLayer.definitionExpression = solutionQueries.join(" OR ");
+    }
+  }
 });
 
-updateMultidimensionalFilterVisibility();
-
-// Add popup content function
-function getPopupContent(feature) {
-  const values = feature.attributes?.pixels?.[0] || [];
-  const pixelValue = feature.attributes?.PixelValue || 'No data';
-  const date = feature.attributes?.StdTime ? new Date(feature.attributes.StdTime) : 'N/A';
+// Add this with your other event listeners
+document.querySelector("calcite-combobox")?.addEventListener("calciteComboboxChange", (event) => {
+  const selectedValue = event.target.selectedItems[0]?.value;
   
-  return `
-    <div class="popup-content">
-      <p><strong>UHI Value:</strong> ${pixelValue}</p>
-      <p><strong>Raw Values:</strong> ${values.join(', ')}</p>
-      <p><strong>Date:</strong> ${date instanceof Date ? date.toLocaleDateString() : date}</p>
-    </div>
-  `;
-}
-
-// Update click handler for pixel identification
-activeView.on("click", (event) => {
-  const point = activeView.toMap(event);
-  if (!point) return;
-
-  const identifyParams = {
-    geometry: point,
-    returnPixelValues: true,
-    returnCatalogItems: false
-  };
-
-  yceouhi_v4.identify(identifyParams).then((response) => {
-    if (response && response.catalogItems && response.catalogItems.length > 0) {
-      const pixelInfo = response.catalogItems[0];
-      const values = response.pixels?.[0] || [];
+  // Find the case_locations layer
+  const uccrnGroup = webmap.layers.find(layer => 
+    layer.title?.toLowerCase().includes("uccrn atlas")
+  );
+  
+  const caseLayer = uccrnGroup?.layers.find(layer => 
+    layer.title?.toLowerCase().includes("case_locations")
+  );
+  
+  if (caseLayer) {
+    if (selectedValue === "all") {
+      // Clear the provenance filter
+      if (caseLayer.definitionExpression) {
+        // Keep any existing solutions filters
+        caseLayer.definitionExpression = caseLayer.definitionExpression
+          .split(' AND ')
+          .filter(expr => !expr.includes('Provenance'))
+          .join(' AND ');
+      }
+    } else {
+      const provenanceFilter = `Provenance LIKE '%${selectedValue === 'city-network' ? 'City Network' : 'Knowledge Network'}%'`;
       
-      activeView.popup.open({
-        location: point,
-        title: "UHI Values",
-        content: `
-          <div class="popup-content">
-            <p><strong>Pixel Value:</strong> ${values[0] || 'No data'}</p>
-            <p><strong>All Values:</strong> ${values.join(', ')}</p>
-          </div>
-        `
-      });
+      if (caseLayer.definitionExpression) {
+        // Combine with existing solutions filters
+        const existingFilters = caseLayer.definitionExpression
+          .split(' AND ')
+          .filter(expr => !expr.includes('Provenance'));
+        caseLayer.definitionExpression = [...existingFilters, provenanceFilter].join(' AND ');
+      } else {
+        caseLayer.definitionExpression = provenanceFilter;
+      }
     }
-  }).catch((error) => {
-    console.error("Error identifying pixel value:", error);
-  });
+  }
+});
+
+// Create password overlay
+const passwordOverlay = document.createElement('div');
+passwordOverlay.className = 'password-overlay';
+
+const passwordForm = document.createElement('form');
+passwordForm.className = 'password-form';
+
+const passwordLabel = document.createElement('calcite-label');
+passwordLabel.textContent = 'Enter Password:';
+passwordLabel.setAttribute('for', 'passwordInput');
+
+const passwordInput = document.createElement('calcite-input');
+passwordInput.type = 'password';
+passwordInput.id = 'passwordInput';
+passwordInput.className = 'password-input';
+
+const passwordButton = document.createElement('calcite-button');
+passwordButton.type = 'submit';
+passwordButton.textContent = 'Submit';
+passwordButton.className = 'password-button';
+
+passwordForm.appendChild(passwordLabel);
+passwordForm.appendChild(passwordInput);
+passwordForm.appendChild(passwordButton);
+passwordOverlay.appendChild(passwordForm);
+document.body.appendChild(passwordOverlay);
+
+// Handle password form submission
+passwordForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const password = passwordInput.value;
+  if (password === 'yourPassword') { // Replace 'yourPassword' with the actual password
+    passwordOverlay.style.display = 'none';
+  } else {
+    alert('Incorrect password. Please try again.');
+  }
+});
+
+// Keep the view.when() callback as is
+view.when(() => {
+  // Set initial panel state
+  optionsSheet.open = true;
+  optionsPanel.closed = false;
+  document.body.classList.add('panel-open');
+  
+  view.ui.add([
+    {
+      component: searchWidget,
+      position: "top-right",
+      index: 0
+    },
+    {
+      component: llExpand,
+      position: "top-right",
+      index: 1
+    },
+    {
+      component: legendExpand,
+      position: "top-right",
+      index: 2
+    },
+    {
+      component: bgExpand,
+      position: "top-right",
+      index: 3
+    },
+    {
+      component: timeSliderExpand,
+      position: "top-right",
+      index: 4
+    }
+  ]);
 });

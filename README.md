@@ -23,7 +23,7 @@ An interactive web mapping application built with ArcGIS Maps SDK for JavaScript
 1. Clone the repository:
 ```sh
 git clone <repository-url>
-cd ipcc-uccrn-atlas-demo
+cd uccrn-atlas-demo
 ```
 
 2. Install packages
@@ -47,10 +47,4 @@ ArcGIS Auth token: `https://columbia.maps.arcgis.com/home/item.html?id=a20ff9428
 
 ## Deployment
 
-### Production Deployment
-
-The production GitHub Page is deployed from the `master` branch. To deploy the production build, push your changes to the `master` branch. The GitHub Actions workflow will automatically build and deploy the application to the production GitHub Page at `https://<username>.github.io/uccrn-atlas-demo/`.
-
-### Development Deployment
-
-The development GitHub Page is deployed from the `dev` branch. To deploy the development build, push your changes to the `dev` branch. The GitHub Actions workflow will automatically build and deploy the application to the development GitHub Page at `https://<username>.github.io/dev-uccrn-atlas-demo/`.
+Managed by github actions

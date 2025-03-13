@@ -1,27 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" href="data:;base64,=" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UCCRN Atlas</title>
-  <script type="module" src="https://js.arcgis.com/calcite-components/3.0.2/calcite.esm.js"></script>
-  <style>
-    html, body, #viewDiv {
-      padding: 0;
-      margin: 0;
-      height: 100%;
-      width: 100%;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:;base64,=" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UCCRN Atlas</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.9.2/calcite.css" />
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.9.2/calcite.esm.js"></script>
+    <script defer data-domain="ciesin.github.io" src="https://plausible.io/js/script.hash.outbound-links.pageview-props.tagged-events.js"></script>
+    <script>
+        window.plausible = window.plausible || function() { 
+            (window.plausible.q = window.plausible.q || []).push(arguments) 
+        }
+    </script>
 </head>
 <body>
-  <div id="viewDiv"></div>
-  <script type="module" src="./src/main.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("viewDiv").scrollIntoView({ behavior: "smooth" });
-    });
-  </script>
+    <div id="viewDiv"></div>
+    <div id="rightWidgets" class="right-widgets"></div>
+    
+    <calcite-sheet label="Atlas Options" position="inline-end" display-mode="dock" id="optionsSheet">
+        <calcite-panel closable heading="City Solutions Case Study Atlas" id="optionsPanel">
+            <calcite-block open heading="">
+                <p>Please note that this is a demo of the prototype in development, with limited functionality and a few selected cities: Copenhagen, Durban, Los Angeles, Mexico City, New York City, Rio de Janeiro, and Singapore.</p>
+            </calcite-block>
+            <calcite-block open heading="App Current Features">
+                <div class="feature-list">
+                    <p>Interactive map of climate solutions case studies</p>
+                    <p>Filter case studies by:</p>
+                    <ul>
+                        <li>Solution type</li>
+                        <li>Provenance</li>
+                        <li>Climate intervention approach</li>
+                    </ul>
+                    <p>Access detailed case information:</p>
+                    <ul>
+                        <li>Case study descriptions</li>
+                        <li>Related documents</li>
+                        <li>Publication links</li>
+                    </ul>
+                    <p>Map customization:</p>
+                    <ul>
+                        <li>Change basemaps</li>
+                        <li>Toggle layer visibility</li>
+                        <li>Explore temporal data</li>
+                    </ul>
+                </div>
+            </calcite-block>
+            <calcite-block open heading="App Feature Enhancement">
+                <div class="feature-list">
+                    <ul>
+                        <li>Searchable Database (in development)</li>
+                        <li>Intelligent/smart search on hundreds/thousands cases(e.g., vector search, AI/ML functions, in long-term planning)</li>
+                    </ul>
+                </div>
+            </calcite-block>
+            <calcite-block open heading="Filter by Solutions">
+                <calcite-chip-group label="solution-filters" selection-mode="multiple">
+                    <calcite-chip class="solution-chip" value="data-tech">
+                        Data and Technology
+                    </calcite-chip>
+                    <calcite-chip class="solution-chip" value="infrastructure">
+                        Infrastructure
+                    </calcite-chip>
+                    <calcite-chip class="solution-chip" value="nbs">
+                        Nature-based Solutions (NbS)
+                    </calcite-chip>
+                    <calcite-chip class="solution-chip" value="urban-planning">
+                        Urban Planning
+                    </calcite-chip>
+                    <calcite-chip class="solution-chip" value="design">
+                        Design
+                    </calcite-chip>
+                    <calcite-chip class="solution-chip" value="architecture">
+                        Architecture
+                    </calcite-chip>
+                </calcite-chip-group>
+            </calcite-block>
+            <calcite-block open heading="Filter by Provenance">
+                <calcite-combobox 
+                    label="Provenance" 
+                    selection-mode="single" 
+                    placeholder="Select provenance"
+                    scale="m"
+                >
+                    <calcite-combobox-item 
+                        value="all" 
+                        text-label="All"
+                        selected
+                    ></calcite-combobox-item>
+                    <calcite-combobox-item 
+                        value="city-network" 
+                        text-label="City Network"
+                    ></calcite-combobox-item>
+                    <calcite-combobox-item 
+                        value="knowledge-network" 
+                        text-label="Knowledge Network"
+                    ></calcite-combobox-item>
+                </calcite-combobox>
+            </calcite-block>
+            <calcite-block open heading="Filter by Climate Intervention">
+                <calcite-combobox 
+                    label="Climate Intervention" 
+                    selection-mode="single" 
+                    placeholder="Select intervention type"
+                    scale="m"
+                    id="climate-intervention"
+                >
+                    <calcite-combobox-item 
+                        value="all" 
+                        text-label="All"
+                        selected
+                    ></calcite-combobox-item>
+                    <calcite-combobox-item 
+                        value="hybrid" 
+                        text-label="Hybrid"
+                    ></calcite-combobox-item>
+                    <calcite-combobox-item 
+                        value="adaptation" 
+                        text-label="Adaptation"
+                    ></calcite-combobox-item>
+                    <calcite-combobox-item 
+                        value="mitigation" 
+                        text-label="Mitigation"
+                    ></calcite-combobox-item>
+                </calcite-combobox>
+            </calcite-block>
+            
+            <calcite-button slot="footer" width="full" appearance="solid">
+                Apply Changes
+            </calcite-button>
+        </calcite-panel>
+    </calcite-sheet>
+    <calcite-button id="homeBtn" icon-start="home" label="Home"></calcite-button>
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

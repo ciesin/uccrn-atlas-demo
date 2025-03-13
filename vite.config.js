@@ -1,29 +1,12 @@
 import { defineConfig } from "vite";
 
-const productionConfig = {
-  base: '/uccrn-atlas-demo/',
+const config = {
   build: {
-    chunkSizeWarningLimit: 2000
+    chunkSizeWarningLimit: 1600,
   },
   server: {
-    open: true
-  }
-};
-
-const developmentConfig = {
-  base: '/dev-uccrn-atlas-demo/',
-  build: {
-    chunkSizeWarningLimit: 2000
+    open: true,
   },
-  server: {
-    open: true
-  }
 };
 
-export default defineConfig(({ mode }) => {
-  if (mode === 'development') {
-    return developmentConfig;
-  } else {
-    return productionConfig;
-  }
-});
+export default defineConfig(config);
