@@ -1,4 +1,4 @@
-[![Deploy Production](https://github.com/ciesin/uccrn-atlas-demo/actions/workflows/deploy-prod.yml/badge.svg?branch=main)](https://github.com/ciesin/uccrn-atlas-demo/actions/workflows/deploy-prod.yml)
+[![Deploy Production](https://github.com/ciesin/uccrn-atlas-demo/actions/workflows/deploy-prod.yml/badge.svg?branch=*)](https://github.com/ciesin/uccrn-atlas-demo/actions/workflows/deploy-prod.yml)
 
 # UCCRN Atlas Demo
 
