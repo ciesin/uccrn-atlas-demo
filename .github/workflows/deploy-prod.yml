@@ -9,6 +9,7 @@ on:
       - main
     types:
       - closed
+  workflow_dispatch: # Add this line to allow manual triggering
 
 permissions:
   contents: read
