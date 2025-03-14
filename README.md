@@ -50,3 +50,4 @@ ArcGIS Auth token: `https://columbia.maps.arcgis.com/home/item.html?id=a20ff9428
 ## Deployment
 
 Managed by github actions
+Run prod deployment manually 
