@@ -9,12 +9,20 @@ import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import LayerList from "@arcgis/core/widgets/LayerList";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
 import Basemap from "@arcgis/core/Basemap";
+import colorMapIcon from './assets/color-map.png';
 
 import { getAllLayers } from "./utils/layers.js";
-import { plausible } from './utils/analytics.js';
+import { plausible } from "./utils/analytics.js";
 
 import "@esri/calcite-components";
 import "./style.css";
+
+// Set favicon
+const favicon = document.createElement('link');
+favicon.rel = 'icon';
+favicon.type = 'image/png';
+favicon.href = colorMapIcon;
+document.head.appendChild(favicon);
 
 const webmap = new WebMap({
   portalItem: {
@@ -408,7 +416,6 @@ function handleApplyChanges() {
 }
 
 // Add this after your other event listeners:
-
 document.querySelector("calcite-chip-group")?.addEventListener("calciteChipGroupSelect", (event) => {
   const selectedSolutions = event.target.selectedItems;
   
