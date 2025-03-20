@@ -231,7 +231,7 @@ view.ui.add({
 // Create a set of fields to exclude
 const excludedFields = new Set([
   'OBJECTID',
-  'unique_identifier',
+  'Unique_Identifier',
   'ObjectId', 
   'FID', 
   'GlobalID', 
@@ -281,32 +281,34 @@ const popupTemplate = {
     // Handle attachments
     try {
       const objectId = feature.graphic.attributes.OBJECTID;
-      const serviceUrl = "https://services2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/uccrn_base_layer/FeatureServer/0";
+      const serviceUrl = "https://services2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/uccrn_csa_base_layer/FeatureServer/0";
       
-      // Construct attachment URL
-      const attachmentUrl = `${serviceUrl}/${objectId}/attachments/${objectId}`;
+      // Query attachments for the feature
+      const attachmentInfo = await layer.queryAttachments({
+        objectIds: [objectId]
+      });
       
-      // Log the constructed URL
-      console.log('Attachment URL:', attachmentUrl);
-      
-      // Create document viewer section
-      const viewerSection = document.createElement("div");
-      viewerSection.className = "document-viewer-section";
-      
-      const heading = document.createElement("h3");
-      heading.className = "viewer-heading";
-      heading.textContent = "Related Document";
-      
-      const iframe = document.createElement("iframe");
-      iframe.src = attachmentUrl;
-      iframe.className = "document-frame";
-      
-      // Log iframe creation
-      console.log('Creating iframe with URL:', iframe.src);
-      
-      viewerSection.appendChild(heading);
-      viewerSection.appendChild(iframe);
-      div.appendChild(viewerSection);
+      const attachments = attachmentInfo[objectId];
+      if (attachments && attachments.length > 0) {
+        const attachment = attachments[0]; // Use the first attachment
+        const attachmentUrl = `${serviceUrl}/${objectId}/attachments/${attachment.id}`;
+        
+        // Create document viewer section
+        const viewerSection = document.createElement("div");
+        viewerSection.className = "document-viewer-section";
+        
+        const heading = document.createElement("h3");
+        heading.className = "viewer-heading";
+        heading.textContent = "Related Document";
+        
+        const iframe = document.createElement("iframe");
+        iframe.src = attachmentUrl;
+        iframe.className = "document-frame";
+        
+        viewerSection.appendChild(heading);
+        viewerSection.appendChild(iframe);
+        div.appendChild(viewerSection);
+      }
     } catch (error) {
       console.error("Error handling attachments:", error);
     }
@@ -352,141 +354,6 @@ const optionsPanel = document.getElementById("optionsPanel");
 optionsPanel?.addEventListener("calcitePanelClose", () => {
   optionsSheet.open = false;
   document.body.classList.remove('panel-open');
-});
-
-// Handle chip selections
-document.querySelector("calcite-chip-group")?.addEventListener("calciteChipGroupSelect", (event) => {
-  const selectedChip = event.target.selectedItems[0];
-  
-  switch(selectedChip?.value) {
-    case "base":
-      bgExpand.expand();
-      break;
-    case "legend":
-      legendExpand.expand();
-      break;
-    case "layers":
-      llExpand.expand();
-      break;
-  }
-});
-
-// Handle opacity changes
-document.querySelector("calcite-slider")?.addEventListener("calciteSliderChange", (event) => {
-  const opacity = event.target.value;
-  webmap.layers.forEach(layer => {
-    layer.opacity = opacity;
-  });
-});
-
-// Handle display mode changes
-document.querySelector("calcite-segmented-control")?.addEventListener("calciteSegmentedControlSelect", (event) => {
-  const mode = event.detail;
-  webmap.layers.forEach(layer => {
-    layer.visible = mode === "visible" || mode === "highlight";
-  });
-});
-
-document.querySelector('calcite-button[slot="footer"]')
-        .addEventListener('click', handleApplyChanges);
-
-// Add the handleApplyChanges function
-function handleApplyChanges() {
-  // Get current settings from UI components
-  const opacity = document.querySelector("calcite-slider")?.value;
-  const displayMode = document.querySelector("calcite-segmented-control")?.value;
-
-  // Apply settings
-  if (opacity !== undefined) {
-    webmap.layers.forEach(layer => {
-      layer.opacity = opacity;
-    });
-  }
-
-  if (displayMode) {
-    webmap.layers.forEach(layer => {
-      layer.visible = displayMode === "visible" || displayMode === "highlight";
-    });
-  }
-
-  // Close the options panel
-  optionsSheet.open = false;
-  optionsPanel.closed = true;
-  document.body.classList.remove('panel-open');
-}
-
-// Add this after your other event listeners:
-document.querySelector("calcite-chip-group")?.addEventListener("calciteChipGroupSelect", (event) => {
-  const selectedSolutions = event.target.selectedItems;
-  
-  // Find the case_locations layer in the UCCRN Atlas group
-  const uccrnGroup = webmap.layers.find(layer => 
-    layer.title?.toLowerCase().includes("uccrn atlas")
-  );
-  
-  const caseLayer = uccrnGroup?.layers.find(layer => 
-    layer.title?.toLowerCase().includes("case_locations")
-  );
-  
-  if (caseLayer) {
-    if (selectedSolutions.length === 0) {
-      // Show all features if no solutions are selected
-      caseLayer.definitionExpression = "";
-    } else {
-      // Create definition expression for selected solutions
-      const solutionQueries = selectedSolutions.map(chip => {
-        // Handle combined terms in the Solutions field
-        let solutionValue = chip.textContent.trim();
-        if (solutionValue === "Urban Planning" || 
-            solutionValue === "Design" || 
-            solutionValue === "Architecture") {
-          return `Solutions LIKE '%${solutionValue}%'`;
-        }
-        return `Solutions LIKE '%${solutionValue}%'`;
-      });
-      
-      caseLayer.definitionExpression = solutionQueries.join(" OR ");
-    }
-  }
-});
-
-// Add this with your other event listeners
-document.querySelector("calcite-combobox")?.addEventListener("calciteComboboxChange", (event) => {
-  const selectedValue = event.target.selectedItems[0]?.value;
-  
-  // Find the case_locations layer
-  const uccrnGroup = webmap.layers.find(layer => 
-    layer.title?.toLowerCase().includes("uccrn atlas")
-  );
-  
-  const caseLayer = uccrnGroup?.layers.find(layer => 
-    layer.title?.toLowerCase().includes("case_locations")
-  );
-  
-  if (caseLayer) {
-    if (selectedValue === "all") {
-      // Clear the provenance filter
-      if (caseLayer.definitionExpression) {
-        // Keep any existing solutions filters
-        caseLayer.definitionExpression = caseLayer.definitionExpression
-          .split(' AND ')
-          .filter(expr => !expr.includes('Provenance'))
-          .join(' AND ');
-      }
-    } else {
-      const provenanceFilter = `Provenance LIKE '%${selectedValue === 'city-network' ? 'City Network' : 'Knowledge Network'}%'`;
-      
-      if (caseLayer.definitionExpression) {
-        // Combine with existing solutions filters
-        const existingFilters = caseLayer.definitionExpression
-          .split(' AND ')
-          .filter(expr => !expr.includes('Provenance'));
-        caseLayer.definitionExpression = [...existingFilters, provenanceFilter].join(' AND ');
-      } else {
-        caseLayer.definitionExpression = provenanceFilter;
-      }
-    }
-  }
 });
 
 // Keep the view.when() callback as is
