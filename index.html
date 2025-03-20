@@ -92,40 +92,34 @@
                         text-label="All"
                         selected
                     ></calcite-combobox-item>
-                    <calcite-combobox-item 
-                        value="city-network" 
-                        text-label="City Network"
-                    ></calcite-combobox-item>
-                    <calcite-combobox-item 
-                        value="knowledge-network" 
-                        text-label="Knowledge Network"
-                    ></calcite-combobox-item>
                 </calcite-combobox>
             </calcite-block>
             <calcite-block open heading="Filter by Climate Intervention">
                 <calcite-combobox 
+                    id="climate-intervention"
                     label="Climate Intervention" 
                     selection-mode="single" 
                     placeholder="Select intervention type"
                     scale="m"
-                    id="climate-intervention"
                 >
                     <calcite-combobox-item 
                         value="all" 
                         text-label="All"
                         selected
                     ></calcite-combobox-item>
+                </calcite-combobox>
+            </calcite-block>
+            <calcite-block open heading="Filter by City Population Size">
+                <calcite-combobox 
+                    id="population-size"
+                    label="Population Size" 
+                    selection-mode="single" 
+                    placeholder="Select population size"
+                    scale="m">
                     <calcite-combobox-item 
-                        value="hybrid" 
-                        text-label="Hybrid"
-                    ></calcite-combobox-item>
-                    <calcite-combobox-item 
-                        value="adaptation" 
-                        text-label="Adaptation"
-                    ></calcite-combobox-item>
-                    <calcite-combobox-item 
-                        value="mitigation" 
-                        text-label="Mitigation"
+                        value="all" 
+                        text-label="All"
+                        selected
                     ></calcite-combobox-item>
                 </calcite-combobox>
             </calcite-block>

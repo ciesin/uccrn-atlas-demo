@@ -1,4 +1,3 @@
-import Bookmarks from "@arcgis/core/widgets/Bookmarks";
 import Expand from "@arcgis/core/widgets/Expand";
 import MapView from "@arcgis/core/views/MapView";
 import SceneView from "@arcgis/core/views/SceneView";
@@ -12,10 +11,15 @@ import Basemap from "@arcgis/core/Basemap";
 import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 import colorMapIcon from './assets/color-map.png';
 
-import { getAllLayers } from "./utils/layers.js";
 import { plausible } from "./utils/analytics.js";
+import { getAllLayers } from "./utils/layers.js";
 import { popupConfig, initializePopup } from './utils/popup.js';
-import { initializeSolutionFilters } from './utils/filters.js';
+import { 
+  initializeSolutionFilters, 
+  initializeProvenanceFilter,
+  initializeClimateInterventionFilter,
+  initializePopulationFilter 
+} from './utils/filters.js';
 
 import "@esri/calcite-components";
 import "./style.css";
@@ -282,10 +286,43 @@ view.when(() => {
       );
       
       if (caseLayer) {
-        initializeSolutionFilters(caseLayer, view);
+        // Wait for the layer view to be ready
+        view.whenLayerView(caseLayer).then(layerView => {
+          // Initialize all filters with the layerView
+          initializeSolutionFilters(caseLayer, view, layerView);
+          initializeProvenanceFilter(caseLayer, view, layerView);
+          initializeClimateInterventionFilter(caseLayer, view, layerView);
+          initializePopulationFilter(caseLayer, view, layerView);
+        }).catch(error => {
+          console.error("Error getting layer view:", error);
+        });
       }
     }
   }).catch(error => {
     console.error("Error loading web map:", error);
   });
+});
+
+// Add similar initialization for sceneView if needed
+sceneView.when(() => {
+  const uccrnGroup = webmap.layers.find(layer => 
+    layer.title?.toLowerCase().includes("uccrn atlas")
+  );
+  
+  if (uccrnGroup?.layers) {
+    const caseLayer = uccrnGroup.layers.find(layer => 
+      layer.title?.toLowerCase().includes("case locations")
+    );
+    
+    if (caseLayer) {
+      sceneView.whenLayerView(caseLayer).then(layerView => {
+        initializeSolutionFilters(caseLayer, sceneView, layerView);
+        initializeProvenanceFilter(caseLayer, sceneView, layerView);
+        initializeClimateInterventionFilter(caseLayer, sceneView, layerView);
+        initializePopulationFilter(caseLayer, sceneView, layerView);
+      }).catch(error => {
+        console.error("Error getting 3D layer view:", error);
+      });
+    }
+  }
 });
