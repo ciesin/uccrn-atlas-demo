@@ -1,7 +1,7 @@
 import Bookmarks from "@arcgis/core/widgets/Bookmarks";
 import Expand from "@arcgis/core/widgets/Expand";
 import MapView from "@arcgis/core/views/MapView";
-import SceneView from "@arcgis/core/views/SceneView"; // Add this line
+import SceneView from "@arcgis/core/views/SceneView";
 import WebMap from "@arcgis/core/WebMap";
 import Legend from "@arcgis/core/widgets/Legend";
 import Search from "@arcgis/core/widgets/Search";
@@ -9,10 +9,13 @@ import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import LayerList from "@arcgis/core/widgets/LayerList";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
 import Basemap from "@arcgis/core/Basemap";
+import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 import colorMapIcon from './assets/color-map.png';
 
 import { getAllLayers } from "./utils/layers.js";
 import { plausible } from "./utils/analytics.js";
+import { popupConfig, initializePopup } from './utils/popup.js';
+import { initializeSolutionFilters } from './utils/filters.js';
 
 import "@esri/calcite-components";
 import "./style.css";
@@ -31,16 +34,6 @@ const webmap = new WebMap({
   layers: getAllLayers()
 });
 
-// Define popup configuration before creating views
-const popupConfig = {
-  dockEnabled: true,
-  dockOptions: {
-    buttonEnabled: false,
-    breakpoint: false,
-    position: "bottom-left"
-  }
-};
-
 // Create MapView with popup config
 const view = new MapView({
   container: "viewDiv",
@@ -53,8 +46,10 @@ const view = new MapView({
   popup: popupConfig
 });
 
-// Add this after the view declaration but before other widget setup
+// Initialize popup
+initializePopup(view);
 
+// Add this after the view declaration but before other widget setup
 let activeView = view;
 
 // Create container for views
@@ -228,124 +223,6 @@ view.ui.add({
   index: 4
 });
 
-// Create a set of fields to exclude
-const excludedFields = new Set([
-  'OBJECTID',
-  'Unique_Identifier',
-  'ObjectId', 
-  'FID', 
-  'GlobalID', 
-  'Shape', 
-  'Shape_Length', 
-  'Shape_Area'
-]);
-
-// Update the popup template
-const popupTemplate = {
-  title: "{Title}",
-  outFields: ["*"],
-  content: async (feature) => {
-    const div = document.createElement("div");
-    div.className = "custom-popup";
-    
-    // Create main content table
-    const table = document.createElement("table");
-    table.className = "popup-table";
-    
-    // Get layer and field configurations
-    const layer = feature.graphic.layer;
-    const fields = layer.fields || [];
-    const fieldMap = new Map(fields.map(f => [f.name, f.alias || f.name]));
-    
-    // Add attribute rows, excluding system fields
-    Object.entries(feature.graphic.attributes).forEach(([field, value]) => {
-      if (value && !excludedFields.has(field)) {
-        const row = table.insertRow();
-        const fieldCell = row.insertCell();
-        const valueCell = row.insertCell();
-        
-        fieldCell.className = "field-name";
-        // Use field alias if available, otherwise format the field name
-        fieldCell.textContent = fieldMap.get(field) || 
-                               field.replace(/([A-Z])/g, ' $1')
-                                   .replace(/_/g, ' ')
-                                   .trim();
-        
-        valueCell.className = "field-value";
-        valueCell.textContent = value;
-      }
-    });
-    
-    div.appendChild(table);
-
-    // Handle attachments
-    try {
-      const objectId = feature.graphic.attributes.OBJECTID;
-      const serviceUrl = "https://services2.arcgis.com/IsDCghZ73NgoYoz5/arcgis/rest/services/uccrn_csa_base_layer/FeatureServer/0";
-      
-      // Query attachments for the feature
-      const attachmentInfo = await layer.queryAttachments({
-        objectIds: [objectId]
-      });
-      
-      const attachments = attachmentInfo[objectId];
-      if (attachments && attachments.length > 0) {
-        const attachment = attachments[0]; // Use the first attachment
-        const attachmentUrl = `${serviceUrl}/${objectId}/attachments/${attachment.id}`;
-        
-        // Create document viewer section
-        const viewerSection = document.createElement("div");
-        viewerSection.className = "document-viewer-section";
-        
-        const heading = document.createElement("h3");
-        heading.className = "viewer-heading";
-        heading.textContent = "Related Document";
-        
-        const iframe = document.createElement("iframe");
-        iframe.src = attachmentUrl;
-        iframe.className = "document-frame";
-        
-        viewerSection.appendChild(heading);
-        viewerSection.appendChild(iframe);
-        div.appendChild(viewerSection);
-      }
-    } catch (error) {
-      console.error("Error handling attachments:", error);
-    }
-    
-    return div;
-  }
-};
-
-// Configure popup settings
-view.popup.dockEnabled = true;
-view.popup.dockOptions = {
-  buttonEnabled: false,
-  breakpoint: false,
-  position: "bottom-left"
-};
-
-// Apply popup template to case_locations layer only
-view.when(() => {
-  webmap.loadAll().then(() => {
-    // Find the UCCRN Atlas group layer
-    const uccrnGroup = webmap.layers.find(layer => 
-      layer.title?.toLowerCase().includes("uccrn atlas")
-    );
-    
-    if (uccrnGroup?.layers) {
-      // Find and apply popup template only to case_locations layer
-      const caseLayer = uccrnGroup.layers.find(layer => 
-        layer.title?.toLowerCase().includes("case locations")
-      );
-      
-      if (caseLayer) {
-        caseLayer.popupTemplate = popupTemplate;
-      }
-    }
-  });
-});
-
 // Sheet handling
 const optionsSheet = document.getElementById("optionsSheet");
 const optionsPanel = document.getElementById("optionsPanel");
@@ -390,4 +267,25 @@ view.when(() => {
       index: 4
     }
   ]);
+});
+
+// Find and initialize the case study layer
+view.when(() => {
+  webmap.loadAll().then(() => {
+    const uccrnGroup = webmap.layers.find(layer => 
+      layer.title?.toLowerCase().includes("uccrn atlas")
+    );
+    
+    if (uccrnGroup?.layers) {
+      const caseLayer = uccrnGroup.layers.find(layer => 
+        layer.title?.toLowerCase().includes("case locations")
+      );
+      
+      if (caseLayer) {
+        initializeSolutionFilters(caseLayer, view);
+      }
+    }
+  }).catch(error => {
+    console.error("Error loading web map:", error);
+  });
 });

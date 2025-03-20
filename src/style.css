@@ -1,4 +1,6 @@
 @import "https://js.arcgis.com/4.32/@arcgis/core/assets/esri/themes/light/main.css";
+
+/* Base styles */
 html,
 body,
 #viewDiv {
@@ -9,6 +11,7 @@ body,
   transition: margin-right 0.5s ease-in-out;
 }
 
+/* Calcite component styles */
 calcite-sheet {
   --calcite-sheet-scrim-background: transparent;
   --calcite-sheet-width: 320px;
@@ -38,23 +41,29 @@ calcite-label {
   margin-bottom: 1rem;
 }
 
+calcite-button {
+  margin-bottom: 0 !important;
+}
+
+calcite-accordion-item {
+  --calcite-ui-border-1: #eee;
+  --calcite-ui-text-3: #666;
+}
+
 /* Layer chip colors */
-.layer-chip:nth-child(1) {
-    --calcite-color-brand: #c66a4a;
-    --calcite-ui-icon-color: #c66a4a;
+.layer-chip {
+  --calcite-ui-icon-color: #c66a4a;
 }
 
 .layer-chip:nth-child(2) {
-    --calcite-color-brand: #3cccb4;
-    --calcite-ui-icon-color: #3cccb4;
+  --calcite-ui-icon-color: #3cccb4;
 }
 
 .layer-chip:nth-child(3) {
-    --calcite-color-brand: #7a81ff;
-    --calcite-ui-icon-color: #7a81ff;
+  --calcite-ui-icon-color: #7a81ff;
 }
 
-/* Add styles for right-side elements container */
+/* UI layout */
 .esri-ui-top-right {
   display: flex;
   flex-direction: column;
@@ -100,31 +109,32 @@ calcite-sheet[open] ~ .esri-ui-top-right {
   }
 }
 
+/* Logo styles */
 .logo-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background-color: rgba(255, 255, 255);
-    position: relative;  /* Added for absolute positioning of beta badge */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: rgba(255, 255, 255);
+  position: relative;  /* Added for absolute positioning of beta badge */
 }
 
 .logo-text {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #2b2b2b;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2b2b2b;
 }
 
 .beta-badge {
-    position: absolute;
-    top: -8px;
-    right: -10px;
-    font-size: 0.6rem;
-    font-weight: bold;
-    padding: 2px 6px;
-    background-color: #006eec;
-    color: white;
-    border-radius: 3px;
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  font-size: 0.6rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  background-color: #006eec;
+  color: white;
+  border-radius: 3px;
 }
 
 /* Popup styles */
@@ -221,11 +231,6 @@ calcite-sheet[open] ~ .esri-ui-top-right {
   border: none;
   margin-top: 8px;
   background: white;
-}
-
-calcite-accordion-item {
-  --calcite-ui-border-1: #eee;
-  --calcite-ui-text-3: #666;
 }
 
 /* Document viewer styles */
@@ -357,4 +362,23 @@ button[type="submit"]:hover {
 
 button[type="submit"]:active {
     background-color: var(--calcite-ui-brand-press);
+}
+
+/* Solution chip styles */
+.solution-chip {
+  margin: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.solution-chip[selected] {
+  --calcite-ui-brand: #007ac2;
+  --calcite-ui-brand-hover: #00619b;
+}
+
+#solutionFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0;
+  min-height: 40px;
 }
