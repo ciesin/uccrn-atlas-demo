@@ -1,4 +1,4 @@
-export function initializeSolutionFilters(layer, view, layerView) {
+export function initializeSolutionFilters(layer, view, layerView, onFilterChange) {
   const solutionSet = new Set();
   
   // Query all features to get unique solutions
@@ -59,6 +59,11 @@ export function initializeSolutionFilters(layer, view, layerView) {
           }
         });
       }
+      
+      // Update counts after filter changes
+      if (onFilterChange) {
+        onFilterChange(layer, layerView);
+      }
     });
   });
 }
@@ -74,7 +79,7 @@ function applyFilterExpression(layerView, solutions) {
   };
 }
 
-export function initializeProvenanceFilter(layer, view, layerView) {
+export function initializeProvenanceFilter(layer, view, layerView, onFilterChange) {
   const provenanceSet = new Set();
   
   return layer.queryFeatures({
@@ -137,11 +142,16 @@ export function initializeProvenanceFilter(layer, view, layerView) {
           }
         });
       }
+      
+      // Update counts after filter changes
+      if (onFilterChange) {
+        onFilterChange(layer, layerView);
+      }
     });
   });
 }
 
-export function initializeClimateInterventionFilter(layer, view, layerView) {
+export function initializeClimateInterventionFilter(layer, view, layerView, onFilterChange) {
   if (!layer || !view || !layerView) {
     console.error("Missing required parameters for climate intervention filter");
     return Promise.reject(new Error("Missing required parameters"));
@@ -209,6 +219,11 @@ export function initializeClimateInterventionFilter(layer, view, layerView) {
           console.error("Error querying extent:", error);
         });
       }
+      
+      // Update counts after filter changes
+      if (onFilterChange) {
+        onFilterChange(layer, layerView);
+      }
     });
   }).catch(error => {
     console.error("Error initializing climate intervention filter:", error);
@@ -216,7 +231,7 @@ export function initializeClimateInterventionFilter(layer, view, layerView) {
   });
 }
 
-export function initializePopulationFilter(layer, view, layerView) {
+export function initializePopulationFilter(layer, view, layerView, onFilterChange) {
   if (!layer || !view || !layerView) {
     console.error("Missing required parameters for population filter");
     return Promise.reject(new Error("Missing required parameters"));
@@ -275,17 +290,11 @@ export function initializePopulationFilter(layer, view, layerView) {
         layerView.filter = {
           where: `CityPopulationSize LIKE '%;${escapedValue};%' OR CityPopulationSize LIKE '${escapedValue};%' OR CityPopulationSize LIKE '%;${escapedValue}' OR CityPopulationSize = '${escapedValue}'`
         };
-        
-        // Zoom to filtered features
-        layer.queryExtent({
-          where: layerView.filter.where
-        }).then(extent => {
-          if (extent) {
-            view.goTo(extent, { duration: 1000 });
-          }
-        }).catch(error => {
-          console.error("Error querying extent:", error);
-        });
+      }
+      
+      // Update counts after filter changes
+      if (onFilterChange) {
+        onFilterChange(layer, layerView);
       }
     });
   }).catch(error => {

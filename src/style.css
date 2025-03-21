@@ -382,3 +382,26 @@ button[type="submit"]:active {
   padding: 8px 0;
   min-height: 40px;
 }
+
+/* Count container styles */
+.count-container {
+    background-color: var(--calcite-ui-foreground-1);
+    padding: 8px 16px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    color: var(--calcite-ui-text-1);
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.count-text {
+    margin: 0;
+    font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+    font-weight: 500;
+}

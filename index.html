@@ -38,13 +38,14 @@
         <span class="logo-text">UCCRN Atlas</span>
         <span class="beta-badge">Beta</span>
     </div>
-
+    <div class="count-container">
+        <p class="count-text">Showing <span id="caseCount">0</span> case studies in <span id="cityCount">0</span> cities</p>
+    </div>
     <calcite-sheet label="Atlas Options" position="inline-end" display-mode="dock" id="optionsSheet">
         <calcite-panel closable heading="City Solutions Case Study Atlas" id="optionsPanel">
             <calcite-block open heading="">
                 <p>Please note that this is a demo of the prototype in development, with limited functionality and 12 selected cities: Copenhagen, Durban, Kano, Los Angeles, Melbourne, Mexico City, Naples, New York City, Rio de Janeiro, Port Vila, Shanghai, and Singapore.</p>
             </calcite-block>
-            
             <calcite-block open heading="Filter by Provenance">
                 <calcite-combobox 
                     label="Provenance" 
@@ -88,13 +89,11 @@
                     ></calcite-combobox-item>
                 </calcite-combobox>
             </calcite-block>
-            
             <calcite-block open heading="Filter by Solutions">
                 <calcite-chip-group id="solutionFilters" label="solution-filters" selection-mode="multiple">
                     <!-- Chips will be dynamically added here -->
                 </calcite-chip-group>
             </calcite-block>
-            
             <calcite-block open heading="App Current Features">
                 <div class="feature-list">
                     <p>Interactive map of climate solutions case studies</p>
@@ -127,10 +126,6 @@
                     </ul>
                 </div>
             </calcite-block>
-            
-            <calcite-button slot="footer" width="full" appearance="solid">
-                Apply Changes
-            </calcite-button>
         </calcite-panel>
     </calcite-sheet>
     <calcite-button id="homeBtn" icon-start="home" label="Home"></calcite-button>

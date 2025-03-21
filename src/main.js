@@ -45,7 +45,7 @@ const view = new MapView({
   center: [0, 0],
   zoom: 2,
   ui: {
-    components: ["zoom", "attribution"] // Only keep zoom controls, removes attribution
+    components: ["zoom"] // Only keep zoom controls, removes attribution
   },
   popup: popupConfig
 });
@@ -153,6 +153,13 @@ view.ui.add({
   position: "top-left",
   index: 0
 });
+
+// Remove or comment out this section if it exists
+// view.ui.add({
+//   component: document.querySelector('.count-container'),
+//   position: "top-left",
+//   index: 1
+// });
 
 const searchWidget = new Search({
   view: view,
@@ -273,6 +280,30 @@ view.when(() => {
   ]);
 });
 
+// Create function to update counts
+function updateFeatureCounts(layer, layerView) {
+  if (!layer || !layerView) return;
+  
+  const query = layerView.filter ? 
+    { where: layerView.filter.where } : 
+    { where: "1=1" };
+  
+  layer.queryFeatureCount(query).then(count => {
+    document.getElementById('caseCount').textContent = count;
+    
+    // Get unique city count
+    layer.queryFeatures({
+      ...query,
+      outFields: ["City"],
+      returnDistinctValues: true,
+      returnGeometry: false
+    }).then(result => {
+      const uniqueCities = new Set(result.features.map(f => f.attributes.City));
+      document.getElementById('cityCount').textContent = uniqueCities.size;
+    });
+  });
+}
+
 // Find and initialize the case study layer
 view.when(() => {
   webmap.loadAll().then(() => {
@@ -288,11 +319,14 @@ view.when(() => {
       if (caseLayer) {
         // Wait for the layer view to be ready
         view.whenLayerView(caseLayer).then(layerView => {
-          // Initialize all filters with the layerView
-          initializeSolutionFilters(caseLayer, view, layerView);
-          initializeProvenanceFilter(caseLayer, view, layerView);
-          initializeClimateInterventionFilter(caseLayer, view, layerView);
-          initializePopulationFilter(caseLayer, view, layerView);
+          // Initial count
+          updateFeatureCounts(caseLayer, layerView);
+          
+          // Initialize all filters with count updates
+          initializeSolutionFilters(caseLayer, view, layerView, updateFeatureCounts);
+          initializeProvenanceFilter(caseLayer, view, layerView, updateFeatureCounts);
+          initializeClimateInterventionFilter(caseLayer, view, layerView, updateFeatureCounts);
+          initializePopulationFilter(caseLayer, view, layerView, updateFeatureCounts);
         }).catch(error => {
           console.error("Error getting layer view:", error);
         });
