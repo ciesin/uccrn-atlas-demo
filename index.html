@@ -44,42 +44,7 @@
             <calcite-block open heading="">
                 <p>Please note that this is a demo of the prototype in development, with limited functionality and 12 selected cities: Copenhagen, Durban, Kano, Los Angeles, Melbourne, Mexico City, Naples, New York City, Rio de Janeiro, Port Vila, Shanghai, and Singapore.</p>
             </calcite-block>
-            <calcite-block open heading="App Current Features">
-                <div class="feature-list">
-                    <p>Interactive map of climate solutions case studies</p>
-                    <p>Filter case studies by:</p>
-                    <ul>
-                        <li>Solution type</li>
-                        <li>Provenance</li>
-                        <li>Climate intervention approach</li>
-                    </ul>
-                    <p>Access detailed case information:</p>
-                    <ul>
-                        <li>Case study descriptions</li>
-                        <li>Related documents</li>
-                        <li>Publication links</li>
-                    </ul>
-                    <p>Map customization:</p>
-                    <ul>
-                        <li>Change basemaps</li>
-                        <li>Toggle layer visibility</li>
-                        <li>Explore temporal data</li>
-                    </ul>
-                </div>
-            </calcite-block>
-            <calcite-block open heading="App Feature Enhancement">
-                <div class="feature-list">
-                    <ul>
-                        <li>Searchable Database (in development)</li>
-                        <li>Intelligent/smart search on hundreds/thousands cases(e.g., vector search, AI/ML functions, in long-term planning)</li>
-                    </ul>
-                </div>
-            </calcite-block>
-            <calcite-block open heading="Filter by Solutions">
-                <calcite-chip-group id="solutionFilters" label="solution-filters" selection-mode="multiple">
-                    <!-- Chips will be dynamically added here -->
-                </calcite-chip-group>
-            </calcite-block>
+            
             <calcite-block open heading="Filter by Provenance">
                 <calcite-combobox 
                     label="Provenance" 
@@ -122,6 +87,45 @@
                         selected
                     ></calcite-combobox-item>
                 </calcite-combobox>
+            </calcite-block>
+            
+            <calcite-block open heading="Filter by Solutions">
+                <calcite-chip-group id="solutionFilters" label="solution-filters" selection-mode="multiple">
+                    <!-- Chips will be dynamically added here -->
+                </calcite-chip-group>
+            </calcite-block>
+            
+            <calcite-block open heading="App Current Features">
+                <div class="feature-list">
+                    <p>Interactive map of climate solutions case studies</p>
+                    <p>Filter case studies by:</p>
+                    <ul>
+                        <li>Solution type</li>
+                        <li>Provenance</li>
+                        <li>Climate intervention approach</li>
+                    </ul>
+                    <p>Access detailed case information:</p>
+                    <ul>
+                        <li>Case study descriptions</li>
+                        <li>Related documents</li>
+                        <li>Publication links</li>
+                    </ul>
+                    <p>Map customization:</p>
+                    <ul>
+                        <li>Change basemaps</li>
+                        <li>Toggle layer visibility</li>
+                        <li>Explore temporal data</li>
+                    </ul>
+                </div>
+            </calcite-block>
+            
+            <calcite-block open heading="App Feature Enhancement">
+                <div class="feature-list">
+                    <ul>
+                        <li>Searchable Database (in development)</li>
+                        <li>Intelligent/smart search on hundreds/thousands cases(e.g., vector search, AI/ML functions, in long-term planning)</li>
+                    </ul>
+                </div>
             </calcite-block>
             
             <calcite-button slot="footer" width="full" appearance="solid">
